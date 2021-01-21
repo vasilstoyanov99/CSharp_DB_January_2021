@@ -12,12 +12,13 @@ CREATE TABLE Exams
 
 CREATE TABLE StudentsExams
 (
-	StudentID INT NOT NULL, 
-	ExamID INT NOT NULL
-)
+	StudentID INT, 
+	ExamID INT 
 
-ALTER TABLE StudentsExams
-ADD CONSTRAINT CK_StudentID_ExamID PRIMARY KEY (StudentID, ExamID)
+	CONSTRAINT CK_StudentID_ExamID PRIMARY KEY (StudentID, ExamID),
+	CONSTRAINT FK_Students FOREIGN KEY (StudentID) REFERENCES Students(StudentID),
+	CONSTRAINT FK_Exams FOREIGN KEY (ExamID) REFERENCES Exams(ExamID)
+)
 
 INSERT INTO Students ([Name]) VALUES
 ('Mila'),
