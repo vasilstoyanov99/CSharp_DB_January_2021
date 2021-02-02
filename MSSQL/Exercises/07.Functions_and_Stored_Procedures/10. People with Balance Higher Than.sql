@@ -4,8 +4,8 @@ CREATE PROC usp_GetHoldersWithBalanceHigherThan
 	BEGIN
 		SELECT FirstName AS 'First Name', 
 			 LastName AS 'Last Name' 
-			FROM Accounts AS a
-				JOIN AccountHolders AS ah ON a.AccountHolderId = ah.Id
+			FROM AccountHolders AS ah
+				JOIN Accounts AS a ON a.AccountHolderId = ah.Id
 			GROUP BY FirstName, LastName
 			HAVING SUM(Balance) > @Money
 			ORDER BY FirstName, LastName
