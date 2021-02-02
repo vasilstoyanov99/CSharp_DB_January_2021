@@ -1,19 +1,18 @@
-CREATE OR ALTER FUNCTION ufn_IsWordComprised(@setOfLetters VARCHAR(MAX), @word VARCHAR(MAX))
+CREATE FUNCTION ufn_IsWordComprised(@setOfLetters VARCHAR(MAX), @word VARCHAR(MAX))
 RETURNS BIT 
 AS
 	BEGIN
-		DECLARE @wordLowerCase VARCHAR(MAX) = LOWER(@word);
-		DECLARE @wordLenght INT = LEN(@word);
-		DECLARE @substringStartPosition INT = 1;
+		DECLARE @wordLenght INT = LEN(@word)
+		DECLARE @substringStartPosition INT = 1
 		WHILE (@substringStartPosition <=  @wordLenght)
 		 BEGIN
-		 DECLARE @char VARCHAR(1) = SUBSTRING(@word, @substringStartPosition, 1) 
-			IF (CHARINDEX(@char, @wordLowerCase) = 0)
-				RETURN 0
+		 DECLARE @char VARCHAR(2) = SUBSTRING(@word, @substringStartPosition, 1) 
+			IF (CHARINDEX(@char, @setOfLetters) > 0)
+				SET @substringStartPosition += 1
 			ELSE
-			SET @substringStartPosition += 1
+			RETURN 0 
 		 END
-        RETURN 0;
+        RETURN 1
 	END
 GO
 
