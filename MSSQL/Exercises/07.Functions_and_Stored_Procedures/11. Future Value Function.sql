@@ -1,11 +1,11 @@
 CREATE FUNCTION ufn_CalculateFutureValue 
-				(@sum DECIMAL, 
+				(@sum DECIMAL(15,2), 
 				@yearlyInterestRate FLOAT, 
 				@numberOfYears INT)
-RETURNS DECIMAL(8, 4)
+RETURNS DECIMAL(15, 4)
 AS
 	BEGIN
-		DECLARE @Result DECIMAL(8, 4);
+		DECLARE @Result DECIMAL(15, 4);
 		SET @Result = @sum * POWER((1 + @yearlyInterestRate), @numberOfYears);
 		RETURN @Result;
 	END
