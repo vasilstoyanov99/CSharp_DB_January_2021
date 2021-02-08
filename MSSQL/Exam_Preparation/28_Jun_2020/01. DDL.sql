@@ -1,5 +1,3 @@
---USE ColonialJourney
-
 CREATE TABLE Planets
 (
 	Id INT PRIMARY KEY IDENTITY, 
