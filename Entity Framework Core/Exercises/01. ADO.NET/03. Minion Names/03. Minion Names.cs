@@ -37,21 +37,22 @@ namespace _03._Minion_Names
                     return;
                 }
 
-                string queryToGetAllMinions = 
-                    "SELECT ROW_NUMBER() OVER (ORDER BY m.[Name]) as RowNum," +
-                    "m.[Name]," +
-                    "m.Age" +
-                    " FROM MinionsVillains AS mv" +
-                    "  JOIN Minions As m ON mv.MinionId = m.Id" +
-                    $"WHERE mv.VillainId = {villainId}" +
-                    "ORDER BY m.[Name]";
+                string queryToGetAllMinions =
+                    @"SELECT ROW_NUMBER()  OVER (ORDER BY m.Name) as RowNum,
+                        m.Name, 
+                        m.Age
+                      FROM MinionsVillains AS mv
+                            JOIN Minions As m ON mv.MinionId = m.Id
+                      WHERE mv.VillainId = @Id
+                      ORDER BY m.Name";
                 command = new SqlCommand(queryToGetAllMinions, connection);
+                command.Parameters.AddWithValue("@Id", villainId);
                 SqlDataReader reader = command.ExecuteReader();
                 Console.WriteLine($"Villain: {villainName}");
 
                 while (reader.Read())
                 {
-                    Console.WriteLine($"{reader["RowNum"]}. {reader["[Name]"]} {reader["Age"]}");
+                    Console.WriteLine($"{reader[0]}. {reader[1]} {reader[2]}");
                 }
             }
         }
