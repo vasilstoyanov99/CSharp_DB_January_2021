@@ -26,9 +26,9 @@ namespace _03._Minion_Names
                                                   $"FROM MinionsVillains AS mv" +
                                                   $"	JOIN Minions As m ON mv.MinionId = m.Id" +
                                                   $"WHERE mv.VillainId = {villainId}";
-                command = new SqlCommand(queryToCheckMinionsCount, connection);
                 command = new SqlCommand(queryToFindVillainName, connection);
                 string villainName = (string)command.ExecuteScalar();
+                command = new SqlCommand(queryToCheckMinionsCount, connection);
 
                 if (object.Equals(command.ExecuteScalar(), null))
                 {
