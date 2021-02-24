@@ -15,7 +15,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetEmployeesInPeriod(context));
+            Console.WriteLine(GetAddressesByTown(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -129,49 +129,75 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetEmployeesInPeriod(SoftUniContext context)
+        //public static string GetEmployeesInPeriod(SoftUniContext context)
+        //{
+        //    var sortedEmployees = context
+        //        .Employees.Include(x => x.EmployeesProjects)
+        //        .ThenInclude(x => x.Project)
+        //        .Where(x =>
+        //            x.EmployeesProjects
+        //                .Any(p =>
+        //                    p.Project.StartDate.Year >= 2001 && p.Project.StartDate.Year <= 2003))
+        //        .Select(x => new
+        //        {
+        //            EmployeeFirstName = x.FirstName,
+        //            EmployeeLastName = x.LastName,
+        //            ManagerFirstName = x.Manager.FirstName,
+        //            ManagerLastName = x.Manager.LastName,
+        //            Projects = x.EmployeesProjects.Select(p => new
+        //            {
+        //                ProjectName = p.Project.Name,
+        //                StartDate = p.Project.StartDate,
+        //                EndDate = p.Project.EndDate
+        //            })
+        //        })
+        //        .Take(10)
+        //        .ToList();
+
+        //    var result = new StringBuilder();
+
+        //    foreach (var e in sortedEmployees)
+        //    {
+        //        result.AppendLine($"{e.EmployeeFirstName} {e.EmployeeLastName} - " +
+        //                          $"Manager: {e.ManagerFirstName} {e.ManagerLastName}");
+
+        //        foreach (var p in e.Projects)
+        //        {
+        //            var endDate = p.EndDate.HasValue 
+        //                ? p.EndDate.Value.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture) 
+        //                : "not finished";
+
+        //            var startDate = p.StartDate
+        //                .ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+
+        //            result.AppendLine($"--{p.ProjectName} - {startDate} - {endDate}");
+        //        }
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string GetAddressesByTown(SoftUniContext context)
         {
-            var sortedEmployees = context
-                .Employees.Include(x => x.EmployeesProjects)
-                .ThenInclude(x => x.Project)
-                .Where(x =>
-                    x.EmployeesProjects
-                        .Any(p =>
-                            p.Project.StartDate.Year >= 2001 && p.Project.StartDate.Year <= 2003))
-                .Select(x => new
+            var sortedAddresses = context
+                .Addresses.Select(x => new
                 {
-                    EmployeeFirstName = x.FirstName,
-                    EmployeeLastName = x.LastName,
-                    ManagerFirstName = x.Manager.FirstName,
-                    ManagerLastName = x.Manager.LastName,
-                    Projects = x.EmployeesProjects.Select(p => new
-                    {
-                        ProjectName = p.Project.Name,
-                        StartDate = p.Project.StartDate,
-                        EndDate = p.Project.EndDate
-                    })
+                    x.AddressText,
+                    TownName = x.Town.Name,
+                    EmployeesCount = x.Employees.Count
                 })
+                .OrderByDescending(x => x.EmployeesCount)
+                .ThenBy(x => x.TownName)
+                .ThenBy(x => x.AddressText)
                 .Take(10)
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var e in sortedEmployees)
+            foreach (var address in sortedAddresses)
             {
-                result.AppendLine($"{e.EmployeeFirstName} {e.EmployeeLastName} - " +
-                                  $"Manager: {e.ManagerFirstName} {e.ManagerLastName}");
-
-                foreach (var p in e.Projects)
-                {
-                    var endDate = p.EndDate.HasValue 
-                        ? p.EndDate.Value.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture) 
-                        : "not finished";
-
-                    var startDate = p.StartDate
-                        .ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
-
-                    result.AppendLine($"--{p.ProjectName} - {startDate} - {endDate}");
-                }
+                result.AppendLine($"{address.AddressText}, {address.TownName} - " +
+                                  $"{address.EmployeesCount} employees");
             }
 
             return result.ToString().TrimEnd();
