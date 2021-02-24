@@ -15,7 +15,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetAddressesByTown(context));
+            Console.WriteLine(GetEmployee147(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -177,27 +177,59 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetAddressesByTown(SoftUniContext context)
+        //public static string GetAddressesByTown(SoftUniContext context)
+        //{
+        //    var sortedAddresses = context
+        //        .Addresses.Select(x => new
+        //        {
+        //            x.AddressText,
+        //            TownName = x.Town.Name,
+        //            EmployeesCount = x.Employees.Count
+        //        })
+        //        .OrderByDescending(x => x.EmployeesCount)
+        //        .ThenBy(x => x.TownName)
+        //        .ThenBy(x => x.AddressText)
+        //        .Take(10)
+        //        .ToList();
+
+        //    var result = new StringBuilder();
+
+        //    foreach (var address in sortedAddresses)
+        //    {
+        //        result.AppendLine($"{address.AddressText}, {address.TownName} - " +
+        //                          $"{address.EmployeesCount} employees");
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string GetEmployee147(SoftUniContext context)
         {
-            var sortedAddresses = context
-                .Addresses.Select(x => new
+            var employeeData = context
+                .Employees
+                .Where(x => x.EmployeeId == 147)
+                .Select(x => new
                 {
-                    x.AddressText,
-                    TownName = x.Town.Name,
-                    EmployeesCount = x.Employees.Count
+                    Name = $"{x.FirstName} {x.LastName}",
+                    x.JobTitle,
+                    Projects = x.EmployeesProjects
+                        .Select(p => new
+                        {
+                            Name = p.Project.Name
+                        })
                 })
-                .OrderByDescending(x => x.EmployeesCount)
-                .ThenBy(x => x.TownName)
-                .ThenBy(x => x.AddressText)
-                .Take(10)
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var address in sortedAddresses)
+            foreach (var e in employeeData)
             {
-                result.AppendLine($"{address.AddressText}, {address.TownName} - " +
-                                  $"{address.EmployeesCount} employees");
+                result.AppendLine($"{e.Name} - {e.JobTitle}");
+
+                foreach (var p in e.Projects.OrderBy(x => x.Name))
+                {
+                    result.AppendLine(p.Name);
+                }
             }
 
             return result.ToString().TrimEnd();
