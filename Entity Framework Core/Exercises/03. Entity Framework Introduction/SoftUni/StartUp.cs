@@ -16,7 +16,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(DeleteProjectById(context));
+            Console.WriteLine(RemoveTown(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -355,41 +355,85 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string DeleteProjectById(SoftUniContext context)
+        //public static string DeleteProjectById(SoftUniContext context)
+        //{
+        //    var employeeProjectToRemove = context
+        //        .EmployeesProjects.Where(x => x.ProjectId == 2)
+        //        .ToList();
+
+        //    foreach (var ep in employeeProjectToRemove)
+        //    {
+        //        context.EmployeesProjects.Remove(ep);
+        //    }
+
+        //    context.SaveChanges();
+        //    var projectToDelete = context
+        //        .Projects
+        //        .Find(2);
+        //    context.Projects.Remove(projectToDelete);
+        //    context.SaveChanges();
+
+        //    var projects = context
+        //                                .Projects
+        //                                .Select(x => new
+        //                                {
+        //                                    x.Name
+        //                                })
+        //                                .Take(10)
+        //                                .ToList();
+
+        //    var result = new StringBuilder();
+
+        //    foreach (var p in projects)
+        //    {
+        //        result.AppendLine(p.Name);
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string RemoveTown(SoftUniContext context)
         {
-            var employeeProjectToRemove = context
-                .EmployeesProjects.Where(x => x.ProjectId == 2)
+            int townId = context
+                 .Towns
+                 .FirstOrDefault(x => x.Name == "Seattle")
+                 .TownId;
+            int addressId = context
+                .Addresses
+                .FirstOrDefault(x => x.TownId == townId)
+                .AddressId;
+            var employees = context
+                .Employees
+                .Where(x => x.AddressId == addressId)
                 .ToList();
 
-            foreach (var ep in employeeProjectToRemove)
+            foreach (var e in employees)
             {
-                context.EmployeesProjects.Remove(ep);
+                e.AddressId = null;
             }
 
             context.SaveChanges();
-            var projectToDelete = context
-                .Projects
-                .Find(2);
-            context.Projects.Remove(projectToDelete);
-            context.SaveChanges();
 
-            var projects = context
-                                        .Projects
-                                        .Select(x => new
-                                        {
-                                            x.Name
-                                        })
-                                        .Take(10)
-                                        .ToList();
+            var addresses = context
+                .Addresses
+                .Where(x => x.TownId == townId)
+                .ToList();
+            int addressesInTown = addresses.Count;
 
-            var result = new StringBuilder();
-
-            foreach (var p in projects)
+            foreach (var a in addresses)
             {
-                result.AppendLine(p.Name);
+                context.Addresses.Remove(a);
             }
 
-            return result.ToString().TrimEnd();
+            context.SaveChanges();
+
+            var town = context
+                .Towns
+                .FirstOrDefault(x => x.Name == "Seattle");
+            context.Towns.Remove(town);
+            context.SaveChanges();
+
+            return $"{addressesInTown} addresses in Seattle were deleted";
         }
     }
 }
