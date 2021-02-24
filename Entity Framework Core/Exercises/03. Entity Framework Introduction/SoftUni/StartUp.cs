@@ -16,7 +16,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetDepartmentsWithMoreThan5Employees(context));
+            Console.WriteLine(GetLatestProjects(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -236,40 +236,67 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
+        //public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
+        //{
+        //    var sortedDepartments = context
+        //        .Departments
+        //        .Where(x => x.Employees.Count > 5)
+        //        .OrderBy(x => x.Employees.Count)
+        //        .ThenBy(x => x.Name)
+        //        .Select(x => new
+        //        {
+        //            x.Name,
+        //            ManagerFirstName = x.Manager.FirstName,
+        //            ManagerLastName = x.Manager.LastName,
+        //            EmployeesData = x.Employees.Select(ed => new
+        //            {
+        //                FirstName = ed.FirstName,
+        //                LastName = ed.LastName,
+        //                JobTitle = ed.JobTitle
+        //            })
+        //            .OrderBy(e => e.FirstName)
+        //            .ThenBy(e => e.LastName)
+        //            .ToList()
+        //        })
+        //        .ToList();
+
+        //    var result = new StringBuilder();
+
+        //    foreach (var d in sortedDepartments)
+        //    {
+        //        result.AppendLine($"{d.Name} - {d.ManagerFirstName} {d.ManagerLastName}");
+
+        //        foreach (var e in d.EmployeesData)
+        //        {
+        //            result.AppendLine($"{e.FirstName} {e.LastName} - {e.JobTitle}");
+        //        }
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string GetLatestProjects(SoftUniContext context)
         {
-            var sortedDepartments = context
-                .Departments
-                .Where(x => x.Employees.Count > 5)
-                .OrderBy(x => x.Employees.Count)
-                .ThenBy(x => x.Name)
+            var sortedProjects = context
+                .Projects
+                .OrderByDescending(x => x.StartDate)
+                .Take(10)
                 .Select(x => new
                 {
-                    x.Name,
-                    ManagerFirstName = x.Manager.FirstName,
-                    ManagerLastName = x.Manager.LastName,
-                    EmployeesData = x.Employees.Select(ed => new
-                    {
-                        FirstName = ed.FirstName,
-                        LastName = ed.LastName,
-                        JobTitle = ed.JobTitle
-                    })
-                    .OrderBy(e => e.FirstName)
-                    .ThenBy(e => e.LastName)
-                    .ToList()
+                    ProjectName = x.Name,
+                    Description = x.Description,
+                    StartDate = x.StartDate.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture)
                 })
+                .OrderBy(x => x.ProjectName)
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var d in sortedDepartments)
+            foreach (var p in sortedProjects)
             {
-                result.AppendLine($"{d.Name} - {d.ManagerFirstName} {d.ManagerLastName}");
-
-                foreach (var e in d.EmployeesData)
-                {
-                    result.AppendLine($"{e.FirstName} {e.LastName} - {e.JobTitle}");
-                }
+                result.AppendLine(p.ProjectName);
+                result.AppendLine(p.Description);
+                result.AppendLine(p.StartDate);
             }
 
             return result.ToString().TrimEnd();
