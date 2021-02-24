@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using SoftUni.Data;
+using SoftUni.Models;
 
 namespace SoftUni
 {
@@ -10,7 +11,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetEmployeesFromResearchAndDevelopment(context));
+            Console.WriteLine(AddNewAddressToEmployee(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -58,28 +59,67 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetEmployeesFromResearchAndDevelopment(SoftUniContext context)
+        //public static string GetEmployeesFromResearchAndDevelopment(SoftUniContext context)
+        //{
+        //    var sortedEmployees = context.Employees
+        //        .Where(x =>
+        //            x.Department.Name == "Research and Development")
+        //        .Select(x => new
+        //        {
+        //            x.FirstName,
+        //            x.LastName,
+        //            DepartmentName = x.Department.Name,
+        //            x.Salary
+        //        })
+        //        .OrderBy(x => x.Salary)
+        //        .ThenByDescending(x => x.FirstName)
+        //        .ToList();
+
+        //    StringBuilder result = new StringBuilder();
+
+        //    foreach (var e in sortedEmployees)
+        //    {
+        //        result.AppendLine($"{e.FirstName} {e.LastName} " +
+        //                          $"from {e.DepartmentName} - ${e.Salary:f2}");
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string AddNewAddressToEmployee(SoftUniContext context)
         {
-            var sortedEmployees = context.Employees
-                .Where(x =>
-                    x.Department.Name == "Research and Development")
+            var address = new Address
+            {
+                AddressText = "Vitoshka 15",
+                TownId = 4
+            };
+
+            var employee = context
+                .Employees
+                .FirstOrDefault(x => x.LastName == "Nakov");
+            address.Employees.Add(employee);
+            context.Addresses.Add(address);
+            context.SaveChanges();
+            employee.AddressId = null;
+            employee.AddressId = address.AddressId;
+            context.SaveChanges();
+
+            var employeesAddressText = context
+                .Employees
                 .Select(x => new
                 {
-                    x.FirstName,
-                    x.LastName,
-                    DepartmentName = x.Department.Name,
-                    x.Salary
+                    x.Address.AddressText,
+                    x.Address.AddressId
                 })
-                .OrderBy(x => x.Salary)
-                .ThenByDescending(x => x.FirstName)
+                .OrderByDescending(x => x.AddressId)
+                .Take(10)
                 .ToList();
 
             StringBuilder result = new StringBuilder();
 
-            foreach (var e in sortedEmployees)
+            foreach (var e in employeesAddressText)
             {
-                result.AppendLine($"{e.FirstName} {e.LastName} " +
-                                  $"from {e.DepartmentName} - ${e.Salary:f2}");
+                result.AppendLine(e.AddressText);
             }
 
             return result.ToString().TrimEnd();
