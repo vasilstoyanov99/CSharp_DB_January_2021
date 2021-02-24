@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.Data.SqlClient.Server;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetEmployee147(context));
+            Console.WriteLine(GetDepartmentsWithMoreThan5Employees(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -203,32 +204,71 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetEmployee147(SoftUniContext context)
+        //public static string GetEmployee147(SoftUniContext context)
+        //{
+        //    var employeeData = context
+        //        .Employees
+        //        .Where(x => x.EmployeeId == 147)
+        //        .Select(x => new
+        //        {
+        //            Name = $"{x.FirstName} {x.LastName}",
+        //            x.JobTitle,
+        //            Projects = x.EmployeesProjects
+        //                .Select(p => new
+        //                {
+        //                    Name = p.Project.Name
+        //                })
+        //        })
+        //        .ToList();
+
+        //    var result = new StringBuilder();
+
+        //    foreach (var e in employeeData)
+        //    {
+        //        result.AppendLine($"{e.Name} - {e.JobTitle}");
+
+        //        foreach (var p in e.Projects.OrderBy(x => x.Name))
+        //        {
+        //            result.AppendLine(p.Name);
+        //        }
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string GetDepartmentsWithMoreThan5Employees(SoftUniContext context)
         {
-            var employeeData = context
-                .Employees
-                .Where(x => x.EmployeeId == 147)
+            var sortedDepartments = context
+                .Departments
+                .Where(x => x.Employees.Count > 5)
+                .OrderBy(x => x.Employees.Count)
+                .ThenBy(x => x.Name)
                 .Select(x => new
                 {
-                    Name = $"{x.FirstName} {x.LastName}",
-                    x.JobTitle,
-                    Projects = x.EmployeesProjects
-                        .Select(p => new
-                        {
-                            Name = p.Project.Name
-                        })
+                    x.Name,
+                    ManagerFirstName = x.Manager.FirstName,
+                    ManagerLastName = x.Manager.LastName,
+                    EmployeesData = x.Employees.Select(ed => new
+                    {
+                        FirstName = ed.FirstName,
+                        LastName = ed.LastName,
+                        JobTitle = ed.JobTitle
+                    })
+                    .OrderBy(e => e.FirstName)
+                    .ThenBy(e => e.LastName)
+                    .ToList()
                 })
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var e in employeeData)
+            foreach (var d in sortedDepartments)
             {
-                result.AppendLine($"{e.Name} - {e.JobTitle}");
+                result.AppendLine($"{d.Name} - {d.ManagerFirstName} {d.ManagerLastName}");
 
-                foreach (var p in e.Projects.OrderBy(x => x.Name))
+                foreach (var e in d.EmployeesData)
                 {
-                    result.AppendLine(p.Name);
+                    result.AppendLine($"{e.FirstName} {e.LastName} - {e.JobTitle}");
                 }
             }
 
