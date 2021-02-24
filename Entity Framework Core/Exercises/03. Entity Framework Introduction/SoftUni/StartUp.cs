@@ -16,7 +16,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(IncreaseSalaries(context));
+            Console.WriteLine(GetEmployeesByFirstNameStartingWithSa(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -302,29 +302,54 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string IncreaseSalaries(SoftUniContext context)
+        //public static string IncreaseSalaries(SoftUniContext context)
+        //{
+        //    var sortedEmployees = context
+        //        .Employees
+        //        .Where(x => x.Department.Name == "Engineering"
+        //                    || x.Department.Name == "Tool Design"
+        //                    || x.Department.Name == "Marketing"
+        //                    || x.Department.Name == "Information Services")
+        //        .OrderBy(x => x.FirstName)
+        //        .ThenBy(x => x.LastName)
+        //        .ToList();
+
+        //    foreach (var e in sortedEmployees)
+        //    {
+        //        e.Salary *= 1.12M;
+        //    }
+
+        //    context.SaveChanges();
+        //    var result = new StringBuilder();
+
+        //    foreach (var e in sortedEmployees)
+        //    {
+        //        result.AppendLine($"{e.FirstName} {e.LastName} (${e.Salary:f2})");
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string GetEmployeesByFirstNameStartingWithSa(SoftUniContext context)
         {
             var sortedEmployees = context
                 .Employees
-                .Where(x => x.Department.Name == "Engineering"
-                            || x.Department.Name == "Tool Design"
-                            || x.Department.Name == "Marketing"
-                            || x.Department.Name == "Information Services")
+                .Where(x => EF.Functions.Like(x.FirstName, "sa%"))
+                .Select(x => new
+                {
+                    x.FirstName,
+                    x.LastName,
+                    x.JobTitle,
+                    x.Salary
+                })
                 .OrderBy(x => x.FirstName)
                 .ThenBy(x => x.LastName)
                 .ToList();
-
-            foreach (var e in sortedEmployees)
-            {
-                e.Salary *= 1.12M;
-            }
-
-            context.SaveChanges();
             var result = new StringBuilder();
 
             foreach (var e in sortedEmployees)
             {
-                result.AppendLine($"{e.FirstName} {e.LastName} (${e.Salary:f2})");
+                result.AppendLine($"{e.FirstName} {e.LastName} - {e.JobTitle} - (${e.Salary:f2})");
             }
 
             return result.ToString().TrimEnd();
