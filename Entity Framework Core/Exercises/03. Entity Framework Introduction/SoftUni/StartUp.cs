@@ -16,7 +16,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetLatestProjects(context));
+            Console.WriteLine(IncreaseSalaries(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -275,28 +275,56 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetLatestProjects(SoftUniContext context)
+        //public static string GetLatestProjects(SoftUniContext context)
+        //{
+        //    var sortedProjects = context
+        //        .Projects
+        //        .OrderByDescending(x => x.StartDate)
+        //        .Take(10)
+        //        .Select(x => new
+        //        {
+        //            ProjectName = x.Name,
+        //            Description = x.Description,
+        //            StartDate = x.StartDate.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture)
+        //        })
+        //        .OrderBy(x => x.ProjectName)
+        //        .ToList();
+
+        //    var result = new StringBuilder();
+
+        //    foreach (var p in sortedProjects)
+        //    {
+        //        result.AppendLine(p.ProjectName);
+        //        result.AppendLine(p.Description);
+        //        result.AppendLine(p.StartDate);
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string IncreaseSalaries(SoftUniContext context)
         {
-            var sortedProjects = context
-                .Projects
-                .OrderByDescending(x => x.StartDate)
-                .Take(10)
-                .Select(x => new
-                {
-                    ProjectName = x.Name,
-                    Description = x.Description,
-                    StartDate = x.StartDate.ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture)
-                })
-                .OrderBy(x => x.ProjectName)
+            var sortedEmployees = context
+                .Employees
+                .Where(x => x.Department.Name == "Engineering"
+                            || x.Department.Name == "Tool Design"
+                            || x.Department.Name == "Marketing"
+                            || x.Department.Name == "Information Services")
+                .OrderBy(x => x.FirstName)
+                .ThenBy(x => x.LastName)
                 .ToList();
 
+            foreach (var e in sortedEmployees)
+            {
+                e.Salary *= 1.12M;
+            }
+
+            context.SaveChanges();
             var result = new StringBuilder();
 
-            foreach (var p in sortedProjects)
+            foreach (var e in sortedEmployees)
             {
-                result.AppendLine(p.ProjectName);
-                result.AppendLine(p.Description);
-                result.AppendLine(p.StartDate);
+                result.AppendLine($"{e.FirstName} {e.LastName} (${e.Salary:f2})");
             }
 
             return result.ToString().TrimEnd();
