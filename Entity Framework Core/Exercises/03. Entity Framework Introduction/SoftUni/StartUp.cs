@@ -16,7 +16,7 @@ namespace SoftUni
         static void Main(string[] args)
         {
             SoftUniContext context = new SoftUniContext();
-            Console.WriteLine(GetEmployeesByFirstNameStartingWithSa(context));
+            Console.WriteLine(DeleteProjectById(context));
         }
 
         //public static string GetEmployeesFullInformation(SoftUniContext context)
@@ -330,26 +330,63 @@ namespace SoftUni
         //    return result.ToString().TrimEnd();
         //}
 
-        public static string GetEmployeesByFirstNameStartingWithSa(SoftUniContext context)
+        //public static string GetEmployeesByFirstNameStartingWithSa(SoftUniContext context)
+        //{
+        //    var sortedEmployees = context
+        //        .Employees
+        //        .Where(x => EF.Functions.Like(x.FirstName, "sa%"))
+        //        .Select(x => new
+        //        {
+        //            x.FirstName,
+        //            x.LastName,
+        //            x.JobTitle,
+        //            x.Salary
+        //        })
+        //        .OrderBy(x => x.FirstName)
+        //        .ThenBy(x => x.LastName)
+        //        .ToList();
+        //    var result = new StringBuilder();
+
+        //    foreach (var e in sortedEmployees)
+        //    {
+        //        result.AppendLine($"{e.FirstName} {e.LastName} - {e.JobTitle} - (${e.Salary:f2})");
+        //    }
+
+        //    return result.ToString().TrimEnd();
+        //}
+
+        public static string DeleteProjectById(SoftUniContext context)
         {
-            var sortedEmployees = context
-                .Employees
-                .Where(x => EF.Functions.Like(x.FirstName, "sa%"))
-                .Select(x => new
-                {
-                    x.FirstName,
-                    x.LastName,
-                    x.JobTitle,
-                    x.Salary
-                })
-                .OrderBy(x => x.FirstName)
-                .ThenBy(x => x.LastName)
+            var employeeProjectToRemove = context
+                .EmployeesProjects.Where(x => x.ProjectId == 2)
                 .ToList();
+
+            foreach (var ep in employeeProjectToRemove)
+            {
+                context.EmployeesProjects.Remove(ep);
+            }
+
+            context.SaveChanges();
+            var projectToDelete = context
+                .Projects
+                .Find(2);
+            context.Projects.Remove(projectToDelete);
+            context.SaveChanges();
+
+            var projects = context
+                                        .Projects
+                                        .Select(x => new
+                                        {
+                                            x.Name
+                                        })
+                                        .Take(10)
+                                        .ToList();
+
             var result = new StringBuilder();
 
-            foreach (var e in sortedEmployees)
+            foreach (var p in projects)
             {
-                result.AppendLine($"{e.FirstName} {e.LastName} - {e.JobTitle} - (${e.Salary:f2})");
+                result.AppendLine(p.Name);
             }
 
             return result.ToString().TrimEnd();
