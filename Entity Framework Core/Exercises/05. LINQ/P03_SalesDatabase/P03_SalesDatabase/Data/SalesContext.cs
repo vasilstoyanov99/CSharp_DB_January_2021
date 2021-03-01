@@ -42,6 +42,14 @@ namespace P03_SalesDatabase.Data
             modelBuilder.ApplyConfiguration(new CustomerConfiguration());
             modelBuilder.ApplyConfiguration(new ProductConfiguration());
             modelBuilder.ApplyConfiguration(new StoreConfiguration());
+
+            modelBuilder.Entity<Sale>(entity =>
+            {
+                entity
+                    .Property(x => x.Date)
+                    .HasColumnType("DATETIME2")
+                    .HasDefaultValueSql("GETDATE()");
+            });
         }
     }
 }
