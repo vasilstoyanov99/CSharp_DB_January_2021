@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace MusicHub.Data.Models
 {
@@ -22,7 +23,8 @@ namespace MusicHub.Data.Models
         [Required]
         public DateTime ReleaseDate { get; set; }
 
-        public decimal Price { get; set; }
+        public decimal Price
+            => Songs.Sum(x => x.Price);
 
         [ForeignKey(nameof(Producer))]
         public int? ProducerId { get; set; }
