@@ -28,14 +28,14 @@ namespace MusicHub
                 .Producers
                 .FirstOrDefault(x => x.Id == producerId)
                 .Albums
-                .Select(x => new
+                .Select(a => new
                 {
-                    x.Name,
-                    ReleaseDate = x.ReleaseDate.ToString
+                    a.Name,
+                    ReleaseDate = a.ReleaseDate.ToString
                         ("MM/dd/yyyy", CultureInfo.InvariantCulture),
-                    ProducerName = x.Producer.Name,
-                    TotalPrice = x.Price,
-                    Songs = x
+                    ProducerName = a.Producer.Name,
+                    TotalPrice = a.Price,
+                    Songs = a
                         .Songs
                         .Select(s => new
                         {
