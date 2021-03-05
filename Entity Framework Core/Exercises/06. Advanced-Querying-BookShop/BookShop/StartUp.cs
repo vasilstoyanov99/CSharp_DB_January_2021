@@ -16,19 +16,20 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            Console.WriteLine(GetBooksByPrice(db));
+            int year = int.Parse(Console.ReadLine());
+            Console.WriteLine(GetBooksNotReleasedIn(db, year));
         }
 
-        public static string GetBooksByPrice(BookShopContext context)
+        public static string GetBooksNotReleasedIn(BookShopContext context, int year)
         {
             var sortedBooks = context
                 .Books
-                .Where(x => x.Price > 40)
-                .OrderByDescending(x => x.Price)
+                .Where(x => x.ReleaseDate.HasValue
+                            && x.ReleaseDate.Value.Year != year)
+                .OrderBy(x => x.BookId)
                 .Select(x => new
                 {
-                    x.Title,
-                    x.Price
+                    x.Title
                 })
                 .ToList();
 
@@ -36,7 +37,7 @@ namespace BookShop
 
             foreach (var book in sortedBooks)
             {
-                result.AppendLine($"{book.Title} - ${book.Price:f2}");
+                result.AppendLine(book.Title);
             }
 
             return result.ToString().Trim();
