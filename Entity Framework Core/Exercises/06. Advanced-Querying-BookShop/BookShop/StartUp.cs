@@ -16,29 +16,27 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            Console.WriteLine(GetGoldenBooks(db));
+            Console.WriteLine(GetBooksByPrice(db));
         }
 
-
-        public static string GetGoldenBooks(BookShopContext context)
+        public static string GetBooksByPrice(BookShopContext context)
         {
             var sortedBooks = context
                 .Books
-                .Where(x => x.EditionType == EditionType.Gold
-                            && x.Copies < 5000)
+                .Where(x => x.Price > 40)
+                .OrderByDescending(x => x.Price)
                 .Select(x => new
                 {
                     x.Title,
-                    x.BookId
+                    x.Price
                 })
-                .OrderBy(x => x.BookId)
                 .ToList();
 
             var result = new StringBuilder();
 
             foreach (var book in sortedBooks)
             {
-                result.AppendLine(book.Title);
+                result.AppendLine($"{book.Title} - ${book.Price:f2}");
             }
 
             return result.ToString().Trim();
