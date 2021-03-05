@@ -15,20 +15,33 @@ namespace BookShop
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
             string arg = Console.ReadLine();
-            Console.WriteLine(GetBookTitlesContaining(db, arg.ToLower()));
+            Console.WriteLine(GetBooksByAuthor(db, arg));
         }
 
-        public static string GetBookTitlesContaining(BookShopContext context, string input)
+        public static string GetBooksByAuthor(BookShopContext context, string input)
         {
             var sortedBooks = context
                 .Books
-                .Where(x => x.Title.ToLower().Contains(input))
-                .OrderBy(x => x.Title)
-                .Select(x => x.Title)
+                .Where(x => x.Author
+                    .LastName
+                    .ToLower()
+                    .StartsWith(input.ToLower()))
+                .OrderBy(x => x.BookId)
+                .Select(x => new
+                {
+                    x.Title,
+                    AuthorFullName = x.Author.FirstName + " " + x.Author.LastName
+                })
                 .ToList();
 
-            string result = String.Join(Environment.NewLine, sortedBooks);
-            return result.Trim();
+            var result = new StringBuilder();
+
+            foreach (var book in sortedBooks)
+            {
+                result.AppendLine($"{book.Title} ({book.AuthorFullName})");
+            }
+
+            return result.ToString().Trim();
         }
     }
 }
