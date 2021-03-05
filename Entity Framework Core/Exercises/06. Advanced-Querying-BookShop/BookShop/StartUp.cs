@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 
 namespace BookShop
 {
@@ -13,35 +14,40 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            string categories = Console.ReadLine();
-            Console.WriteLine(GetBooksByCategory(db, categories));
+            string date = Console.ReadLine();
+            Console.WriteLine(GetBooksReleasedBefore(db, date));
         }
 
-        public static string GetBooksByCategory(BookShopContext context, string input)
+        public static string GetBooksReleasedBefore(BookShopContext context, string date)
         {
-            var listOfCategories = input
-                .ToLower()
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            DateTime dateTime = DateTime.ParseExact(date, "dd-MM-yyyy",
+                CultureInfo.InvariantCulture);
+
+            var sortedBooks = context
+                .Books
+                .ToList()
+                .Where(x => x.ReleaseDate.HasValue &&
+                            x
+                                .ReleaseDate
+                                .Value
+                                .Date < dateTime)
+                .OrderByDescending(x => x.ReleaseDate)
+                .Select(x => new
+                {
+                    x.Title,
+                    x.EditionType,
+                    x.Price
+                })
                 .ToList();
 
-            var sortedTitles = new List<string>();
+            var result = new StringBuilder();
 
-            foreach (var category in listOfCategories)
+            foreach (var book in sortedBooks)
             {
-                var titles = context
-                    .Books
-                    .Where(x => x
-                        .BookCategories
-                        .Any(b => 
-                            b.Category.Name.ToLower().Contains(category)))
-                    .Select(x => x.Title)
-                    .ToList();
-                sortedTitles.AddRange(titles);
+                result.AppendLine($"{book.Title} - {book.EditionType} - ${book.Price:f2}");
             }
 
-            string result = String.Join(Environment.NewLine, 
-                sortedTitles.OrderBy(x => x));
-            return result.Trim();
+            return result.ToString().Trim();
         }
     }
 }
