@@ -14,30 +14,41 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            Console.WriteLine(GetTotalProfitByCategory(db));
+            Console.WriteLine(GetMostRecentBooks(db));
         }
 
-        public static string GetTotalProfitByCategory(BookShopContext context)
+        public static string GetMostRecentBooks(BookShopContext context)
         {
-            var profitsByCategory = context
+            var recentBooks = context
                 .Categories
                 .Select(x => new
                 {
-                    TotalProfit = x
+                    x.Name,
+                    Books = x
                         .CategoryBooks
-                        .Sum(p
-                            => p.Book.Copies * p.Book.Price),
-                    Category = x.Name
+                        .Where(a => a.Book.ReleaseDate.HasValue)
+                        .Select(a => new
+                        {
+                            a.Book.Title,
+                            a.Book.ReleaseDate
+                        })
+                        .OrderByDescending(a => a.ReleaseDate)
+                        .Take(3)
+                        .ToList()
                 })
-                .OrderByDescending(x => x.TotalProfit)
-                .ThenBy(x => x.Category)
+                .OrderBy(x => x.Name)
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var item in profitsByCategory)
+            foreach (var category in recentBooks)
             {
-                result.AppendLine($"{item.Category} ${item.TotalProfit:f2}");
+                result.AppendLine($"--{category.Name}");
+
+                foreach (var book in category.Books)
+                {
+                    result.AppendLine($"{book.Title} ({book.ReleaseDate.Value.Year})");
+                }
             }
 
             return result.ToString().Trim();
