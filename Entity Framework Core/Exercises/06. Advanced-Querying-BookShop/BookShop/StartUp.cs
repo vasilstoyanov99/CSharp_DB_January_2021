@@ -14,37 +14,27 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            string date = Console.ReadLine();
-            Console.WriteLine(GetBooksReleasedBefore(db, date));
+            string arg = Console.ReadLine();
+            Console.WriteLine(GetAuthorNamesEndingIn(db, arg));
         }
 
-        public static string GetBooksReleasedBefore(BookShopContext context, string date)
+        public static string GetAuthorNamesEndingIn(BookShopContext context, string input)
         {
-            DateTime dateTime = DateTime.ParseExact(date, "dd-MM-yyyy",
-                CultureInfo.InvariantCulture);
-
-            var sortedBooks = context
-                .Books
-                .ToList()
-                .Where(x => x.ReleaseDate.HasValue &&
-                            x
-                                .ReleaseDate
-                                .Value
-                                .Date < dateTime)
-                .OrderByDescending(x => x.ReleaseDate)
+            var sortedAuthors = context
+                .Authors
+                .Where(x => x.FirstName.EndsWith(input))
                 .Select(x => new
                 {
-                    x.Title,
-                    x.EditionType,
-                    x.Price
+                    FullName = x.FirstName + " " + x.LastName
                 })
+                .OrderBy(x => x.FullName)
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var book in sortedBooks)
+            foreach (var author in sortedAuthors)
             {
-                result.AppendLine($"{book.Title} - {book.EditionType} - ${book.Price:f2}");
+                result.AppendLine(author.FullName);
             }
 
             return result.ToString().Trim();
