@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -13,31 +14,29 @@ namespace BookShop
     {
         public static void Main()
         {
-            using var db = new BookShopContext();
+            using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            string ageRestriction = Console.ReadLine();
-            Console.WriteLine(GetBooksByAgeRestriction(db, ageRestriction));
+            Console.WriteLine(GetGoldenBooks(db));
         }
 
-        public static string GetBooksByAgeRestriction
-            (BookShopContext context, string command)
-        {
-            AgeRestriction ageRestrictionEnum = Enum
-                .Parse<AgeRestriction>(command, true);
 
-            var sortedTitles = context
+        public static string GetGoldenBooks(BookShopContext context)
+        {
+            var sortedBooks = context
                 .Books
-                .Where(x => x.AgeRestriction == ageRestrictionEnum)
+                .Where(x => x.EditionType == EditionType.Gold
+                            && x.Copies < 5000)
                 .Select(x => new
                 {
-                    x.Title
+                    x.Title,
+                    x.BookId
                 })
-                .OrderBy(x => x.Title)
+                .OrderBy(x => x.BookId)
                 .ToList();
 
             var result = new StringBuilder();
 
-            foreach (var book in sortedTitles)
+            foreach (var book in sortedBooks)
             {
                 result.AppendLine(book.Title);
             }
