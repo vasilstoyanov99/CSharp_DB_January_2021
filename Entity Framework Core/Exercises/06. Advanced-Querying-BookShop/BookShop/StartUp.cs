@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 
 namespace BookShop
 {
@@ -14,34 +12,19 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            string arg = Console.ReadLine();
-            Console.WriteLine(GetBooksByAuthor(db, arg));
+            int arg = int.Parse(Console.ReadLine());
+            Console.WriteLine(CountBooks(db, arg));
         }
 
-        public static string GetBooksByAuthor(BookShopContext context, string input)
+        public static int CountBooks(BookShopContext context, int lengthCheck)
         {
-            var sortedBooks = context
+            var countOfBooks = context
                 .Books
-                .Where(x => x.Author
-                    .LastName
-                    .ToLower()
-                    .StartsWith(input.ToLower()))
-                .OrderBy(x => x.BookId)
-                .Select(x => new
-                {
-                    x.Title,
-                    AuthorFullName = x.Author.FirstName + " " + x.Author.LastName
-                })
-                .ToList();
+                .Where(x => x.Title.Length > lengthCheck)
+                .ToList()
+                .Count;
 
-            var result = new StringBuilder();
-
-            foreach (var book in sortedBooks)
-            {
-                result.AppendLine($"{book.Title} ({book.AuthorFullName})");
-            }
-
-            return result.ToString().Trim();
+            return countOfBooks;
         }
     }
 }
