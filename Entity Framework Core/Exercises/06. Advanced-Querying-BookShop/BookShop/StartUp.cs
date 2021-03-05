@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-
-using BookShop.Models.Enums;
 
 namespace BookShop
 {
@@ -16,31 +13,35 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            int year = int.Parse(Console.ReadLine());
-            Console.WriteLine(GetBooksNotReleasedIn(db, year));
+            string categories = Console.ReadLine();
+            Console.WriteLine(GetBooksByCategory(db, categories));
         }
 
-        public static string GetBooksNotReleasedIn(BookShopContext context, int year)
+        public static string GetBooksByCategory(BookShopContext context, string input)
         {
-            var sortedBooks = context
-                .Books
-                .Where(x => x.ReleaseDate.HasValue
-                            && x.ReleaseDate.Value.Year != year)
-                .OrderBy(x => x.BookId)
-                .Select(x => new
-                {
-                    x.Title
-                })
+            var listOfCategories = input
+                .ToLower()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
 
-            var result = new StringBuilder();
+            var sortedTitles = new List<string>();
 
-            foreach (var book in sortedBooks)
+            foreach (var category in listOfCategories)
             {
-                result.AppendLine(book.Title);
+                var titles = context
+                    .Books
+                    .Where(x => x
+                        .BookCategories
+                        .Any(b => 
+                            b.Category.Name.ToLower().Contains(category)))
+                    .Select(x => x.Title)
+                    .ToList();
+                sortedTitles.AddRange(titles);
             }
 
-            return result.ToString().Trim();
+            string result = String.Join(Environment.NewLine, 
+                sortedTitles.OrderBy(x => x));
+            return result.Trim();
         }
     }
 }
