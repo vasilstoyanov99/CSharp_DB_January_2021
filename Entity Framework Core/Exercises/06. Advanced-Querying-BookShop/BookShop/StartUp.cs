@@ -14,44 +14,22 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            Console.WriteLine(GetMostRecentBooks(db));
+            IncreasePrices(db);
         }
 
-        public static string GetMostRecentBooks(BookShopContext context)
+        public static void IncreasePrices(BookShopContext context)
         {
-            var recentBooks = context
-                .Categories
-                .Select(x => new
-                {
-                    x.Name,
-                    Books = x
-                        .CategoryBooks
-                        .Where(a => a.Book.ReleaseDate.HasValue)
-                        .Select(a => new
-                        {
-                            a.Book.Title,
-                            a.Book.ReleaseDate
-                        })
-                        .OrderByDescending(a => a.ReleaseDate)
-                        .Take(3)
-                        .ToList()
-                })
-                .OrderBy(x => x.Name)
+            var sortedBooks = context
+                .Books
+                .Where(x => x.ReleaseDate.Value.Year < 2010 && x.ReleaseDate.HasValue)
                 .ToList();
 
-            var result = new StringBuilder();
-
-            foreach (var category in recentBooks)
+            foreach (var book in sortedBooks)
             {
-                result.AppendLine($"--{category.Name}");
-
-                foreach (var book in category.Books)
-                {
-                    result.AppendLine($"{book.Title} ({book.ReleaseDate.Value.Year})");
-                }
+                book.Price += 5;
             }
 
-            return result.ToString().Trim();
+            context.SaveChanges();
         }
     }
 }
