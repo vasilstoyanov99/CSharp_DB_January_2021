@@ -14,22 +14,23 @@ namespace BookShop
         {
             using BookShopContext db = new BookShopContext();
             DbInitializer.ResetDatabase(db);
-            IncreasePrices(db);
+            Console.WriteLine(RemoveBooks(db));
         }
 
-        public static void IncreasePrices(BookShopContext context)
+        public static int RemoveBooks(BookShopContext context)
         {
-            var sortedBooks = context
+            var booksToRemove = context
                 .Books
-                .Where(x => x.ReleaseDate.Value.Year < 2010 && x.ReleaseDate.HasValue)
+                .Where(x => x.Copies < 4200)
                 .ToList();
 
-            foreach (var book in sortedBooks)
-            {
-                book.Price += 5;
-            }
+            int countOfRemovedBooks = booksToRemove.Count;
+
+            context.RemoveRange(booksToRemove);
 
             context.SaveChanges();
+
+            return countOfRemovedBooks;
         }
     }
 }
