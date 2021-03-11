@@ -1,4 +1,6 @@
-﻿namespace FastFood.Data
+﻿using System;
+
+namespace FastFood.Data
 {
     using Microsoft.EntityFrameworkCore;
     using Models;
@@ -37,6 +39,18 @@
 
             builder.Entity<Item>()
                 .HasAlternateKey(i => i.Name);
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder
+                    .UseSqlServer("Server=.;Database=FastFood;Trusted_Connection=True" +
+                                            ";MultipleActiveResultSets=true");
+            }
+
+            base.OnConfiguring(optionsBuilder);
         }
     }
 }
