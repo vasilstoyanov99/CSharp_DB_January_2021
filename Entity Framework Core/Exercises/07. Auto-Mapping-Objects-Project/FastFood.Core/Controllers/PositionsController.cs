@@ -1,4 +1,6 @@
-﻿namespace FastFood.Core.Controllers
+﻿using FastFood.Core.ViewModels.Employees;
+
+namespace FastFood.Core.Controllers
 {
     using System.Linq;
     using AutoMapper;

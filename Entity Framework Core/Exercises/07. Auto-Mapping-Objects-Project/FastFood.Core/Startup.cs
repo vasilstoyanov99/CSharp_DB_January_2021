@@ -34,7 +34,7 @@ namespace FastFood.Core
 
             services.AddControllersWithViews();
 
-            services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(Assembly.GetEntryAssembly());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
