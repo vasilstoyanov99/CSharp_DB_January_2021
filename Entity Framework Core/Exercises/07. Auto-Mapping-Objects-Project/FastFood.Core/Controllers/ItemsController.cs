@@ -1,4 +1,6 @@
-﻿namespace FastFood.Core.Controllers
+﻿using FastFood.Models;
+
+namespace FastFood.Core.Controllers
 {
     using System;
     using System.Linq;
@@ -21,7 +23,8 @@
 
         public IActionResult Create()
         {
-            var categories = this.context.Categories
+            var categories = context
+                .Categories
                 .ProjectTo<CreateItemViewModel>(mapper.ConfigurationProvider)
                 .ToList();
 
@@ -31,12 +34,23 @@
         [HttpPost]
         public IActionResult Create(CreateItemInputModel model)
         {
-            throw new NotImplementedException();
+            var item = this.mapper.Map<Item>(model);
+
+            context.Items.Add(item);
+
+            context.SaveChanges();
+
+            return this.RedirectToAction("All");
         }
 
         public IActionResult All()
         {
-            throw new NotImplementedException();
+            var items = context
+                .Items
+                .ProjectTo<ItemsAllViewModels>(mapper.ConfigurationProvider)
+                .ToList();
+
+            return this.View(items);
         }
     }
 }
