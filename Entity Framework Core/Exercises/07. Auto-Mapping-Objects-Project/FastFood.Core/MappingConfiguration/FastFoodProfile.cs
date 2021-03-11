@@ -62,7 +62,10 @@ namespace FastFood.Core.MappingConfiguration
                 .ForMember(x => x.OrderId,
                     y => y.MapFrom(s => s.Id))
                 .ForMember(x => x.DateTime,
-                    y => y.MapFrom(s => s.DateTime.ToString("d")));
+                    y => y.MapFrom(s => s.DateTime.ToString("MM/dd/yyyy HH:mm")));
+
+            //OrderItem
+            this.CreateMap<CreateOrderInputModel, OrderItem>();
         }
     }
 }

@@ -36,7 +36,8 @@ namespace FastFood.Core.Controllers
         public IActionResult Create(CreateOrderInputModel model)
         {
             var order = this.mapper.Map<Order>(model);
-            order.OrderItems.Add(new OrderItem {ItemId = model.ItemId});
+            var orderItem = this.mapper.Map<OrderItem>(model);
+            order.OrderItems.Add(orderItem);
 
             this.context.Orders.Add(order);
 
