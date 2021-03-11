@@ -1,4 +1,8 @@
-﻿namespace FastFood.Core.Controllers
+﻿using System.Linq;
+using AutoMapper.QueryableExtensions;
+using FastFood.Models;
+
+namespace FastFood.Core.Controllers
 {
     using System;
     using AutoMapper;
@@ -25,12 +29,23 @@
         [HttpPost]
         public IActionResult Create(CreateCategoryInputModel model)
         {
-            throw new NotImplementedException();
+            var category = this.mapper.Map<Category>(model);
+
+            this.context.Categories.Add(category);
+
+            this.context.SaveChanges();
+
+            return RedirectToAction("All");
         }
 
         public IActionResult All()
         {
-            throw new NotImplementedException();
+            var allCategories = context
+                .Categories
+                .ProjectTo<CategoryAllViewModel>(mapper.ConfigurationProvider)
+                .ToList();
+
+            return this.View(allCategories);
         }
     }
 }
