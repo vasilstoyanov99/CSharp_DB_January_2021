@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json;
 
 using ProductShop.Data;
@@ -14,19 +12,17 @@ namespace ProductShop
         public static void Main(string[] args)
         {
             var context = new ProductShopContext();
-            string json = File.ReadAllText("../../../Datasets/categories.json");
-            Console.WriteLine(ImportCategories(context, json));
+            string json = File.ReadAllText("../../../Datasets/categories-products.json");
+            Console.WriteLine(ImportCategoryProducts(context, json));
         }
 
-        public static string ImportCategories(ProductShopContext context, string inputJson)
+        public static string ImportCategoryProducts(ProductShopContext context, string inputJson)
         {
-            var categories = JsonConvert
-                .DeserializeObject<Category[]>(inputJson)
-                .Where(x => x.Name != null)
-                .ToList();
-            context.Categories.AddRange(categories);
+            var categoriesProducts = JsonConvert
+                .DeserializeObject<CategoryProduct[]>(inputJson);
+            context.CategoryProducts.AddRange(categoriesProducts);
             context.SaveChanges();
-            var result = $"Successfully imported {categories.Count}";
+            var result = $"Successfully imported {categoriesProducts.Length}";
             return result;
         }
     }
