@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json;
 
 using ProductShop.Data;
@@ -12,31 +14,20 @@ namespace ProductShop
         public static void Main(string[] args)
         {
             var context = new ProductShopContext();
-            //ResetDatabase(context);
-            string json = File.ReadAllText("../../../Datasets/products.json");
-            Console.WriteLine(ImportProducts(context, json));
+            string json = File.ReadAllText("../../../Datasets/categories.json");
+            Console.WriteLine(ImportCategories(context, json));
         }
 
-        public static string ImportProducts(ProductShopContext context, string inputJson)
+        public static string ImportCategories(ProductShopContext context, string inputJson)
         {
-            var products = JsonConvert.DeserializeObject<Product[]>(inputJson);
-            context.Products.AddRange(products);
-            var result = $"Successfully imported {products.Length}";
+            var categories = JsonConvert
+                .DeserializeObject<Category[]>(inputJson)
+                .Where(x => x.Name != null)
+                .ToList();
+            context.Categories.AddRange(categories);
             context.SaveChanges();
+            var result = $"Successfully imported {categories.Count}";
             return result;
         }
-
-        //private static void ResetDatabase(ProductShopContext context)
-        //{
-        //    if (context.Database.EnsureDeleted())
-        //    {
-        //        Console.WriteLine("Database successfully deleted!");
-        //    }
-
-        //    if (context.Database.EnsureCreated())
-        //    {
-        //        Console.WriteLine("Database successfully created!");
-        //    }
-        //}
     }
 }
