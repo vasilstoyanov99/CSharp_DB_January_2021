@@ -13,15 +13,15 @@ namespace ProductShop
         {
             var context = new ProductShopContext();
             //ResetDatabase(context);
-            string json = File.ReadAllText("../../../Datasets/users.json");
-            Console.WriteLine(ImportUsers(context, json));
+            string json = File.ReadAllText("../../../Datasets/products.json");
+            Console.WriteLine(ImportProducts(context, json));
         }
 
-        public static string ImportUsers(ProductShopContext context, string inputJson)
+        public static string ImportProducts(ProductShopContext context, string inputJson)
         {
-            var users = JsonConvert.DeserializeObject<User[]>(inputJson);
-            context.Users.AddRange(users);
-            var result = $"Successfully imported {users.Length}";
+            var products = JsonConvert.DeserializeObject<Product[]>(inputJson);
+            context.Products.AddRange(products);
+            var result = $"Successfully imported {products.Length}";
             context.SaveChanges();
             return result;
         }
