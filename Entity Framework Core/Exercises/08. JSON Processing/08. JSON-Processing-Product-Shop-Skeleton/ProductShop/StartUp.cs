@@ -16,36 +16,26 @@ namespace ProductShop
         {
             InitializeMapper();
             var context = new ProductShopContext();
-            var json = GetSoldProducts(context);
+            var json = GetCategoriesByProductsCount(context);
             EnsureDirectoryExists();
-            File.WriteAllText(OutputPath + "/users-sold-products.json", json);
+            File.WriteAllText(OutputPath + "/categories-by-products.json", json);
         }
 
-        public static string GetSoldProducts(ProductShopContext context)
+        public static string GetCategoriesByProductsCount(ProductShopContext context)
         {
-            var sortedUsers = context
-                .Users
-                .Where(x => x.ProductsSold.Count >= 1
-                           /* && x.ProductsBought.Any(y => y.Buyer != null)*/)
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .Select(u => new SoldProductsDto()
+            var sortedCategories = context
+                .Categories
+                .OrderByDescending(x => x.CategoryProducts.Count)
+                .Select(x => new
                 {
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    SoldProducts = u
-                        .ProductsSold
-                        .Select(p => new ProductDto()
-                    {
-                            Name = p.Name,
-                            Price = p.Price,
-                            BuyerFirstName = p.Buyer.FirstName,
-                            BuyerLastName = p.Buyer.LastName
-                    })
-                        .ToList()
+                    category = x.Name,
+                    productsCount = x.CategoryProducts.Count,
+                    averagePrice = x.CategoryProducts.Average(p => p.Product.Price).ToString("F2"),
+                    totalRevenue = x.CategoryProducts.Sum(cp => cp.Product.Price).ToString("F2"),
                 })
                 .ToList();
-            var json = JsonConvert.SerializeObject(sortedUsers, Formatting.Indented);
+
+            var json = JsonConvert.SerializeObject(sortedCategories, Formatting.Indented);
             return json;
         }
 
