@@ -5,11 +5,11 @@ using Newtonsoft.Json;
 
 namespace ProductShop.Data.DTO
 {
-    public class SoldProductsDto
+    public class SoldProductsDTO
     {
-        public SoldProductsDto()
+        public SoldProductsDTO()
         {
-            SoldProducts = new List<ProductDto>();
+            SoldProducts = new List<ProductDTO>();
         }
 
         [JsonProperty("firstName")] 
@@ -19,6 +19,6 @@ namespace ProductShop.Data.DTO
         public string LastName { get; set; }
 
         [JsonProperty("soldProducts")] 
-        public ICollection<ProductDto> SoldProducts { get; set; }
+        public ICollection<ProductDTO> SoldProducts { get; set; }
     }
 }

@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 using ProductShop.Data;
@@ -16,26 +19,51 @@ namespace ProductShop
         {
             InitializeMapper();
             var context = new ProductShopContext();
-            var json = GetCategoriesByProductsCount(context);
+            var json = GetUsersWithProducts(context);
             EnsureDirectoryExists();
-            File.WriteAllText(OutputPath + "/categories-by-products.json", json);
+            File.WriteAllText(OutputPath + "/users-and-products.json", json);
         }
 
-        public static string GetCategoriesByProductsCount(ProductShopContext context)
+        public static string GetUsersWithProducts(ProductShopContext context)
         {
-            var sortedCategories = context
-                .Categories
-                .OrderByDescending(x => x.CategoryProducts.Count)
-                .Select(x => new
+            var sortedUsers = context
+                .Users
+                .Include(x => x.ProductsSold)
+                .ToList()
+                .Where(x => x.ProductsSold.Any(a => a.Buyer != null))
+                .OrderByDescending(x => x.ProductsSold.Count(p => p.Buyer != null))
+                .Select(u => new UserExportDto()
                 {
-                    category = x.Name,
-                    productsCount = x.CategoryProducts.Count,
-                    averagePrice = x.CategoryProducts.Average(p => p.Product.Price).ToString("F2"),
-                    totalRevenue = x.CategoryProducts.Sum(cp => cp.Product.Price).ToString("F2"),
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Age = u.Age,
+                    SoldProducts = new SoldProductsExportDTO()
+                    {
+                        Count = u.ProductsSold.Count(p => p.Buyer != null),
+                        Products = u.ProductsSold
+                            .ToList()
+                            .Where(p => p.Buyer != null)
+                            .Select(p => new ProductDTO()
+                            {
+                                Name = p.Name,
+                                Price = p.Price
+                            })
+                            .ToList()
+                    }
                 })
                 .ToList();
+            var result = new
+            {
+                count = sortedUsers.Count,
+                users = sortedUsers
+            };
 
-            var json = JsonConvert.SerializeObject(sortedCategories, Formatting.Indented);
+            var settings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            var json = JsonConvert.SerializeObject(result, settings);
             return json;
         }
 
