@@ -19,51 +19,37 @@ namespace ProductShop
         {
             InitializeMapper();
             var context = new ProductShopContext();
-            var json = GetUsersWithProducts(context);
+            var json = GetSoldProducts(context);
             EnsureDirectoryExists();
-            File.WriteAllText(OutputPath + "/users-and-products.json", json);
+            File.WriteAllText(OutputPath + "users-sold-products.json", json);
         }
 
-        public static string GetUsersWithProducts(ProductShopContext context)
+        public static string GetSoldProducts(ProductShopContext context)
         {
             var sortedUsers = context
                 .Users
-                .Include(x => x.ProductsSold)
-                .ToList()
-                .Where(x => x.ProductsSold.Any(a => a.Buyer != null))
-                .OrderByDescending(x => x.ProductsSold.Count(p => p.Buyer != null))
-                .Select(u => new UserExportDto()
+                .Where(x => x.ProductsSold.Any(p => p.BuyerId != null))
+                .Select(u => new
                 {
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Age = u.Age,
-                    SoldProducts = new SoldProductsExportDTO()
-                    {
-                        Count = u.ProductsSold.Count(p => p.Buyer != null),
-                        Products = u.ProductsSold
-                            .ToList()
-                            .Where(p => p.Buyer != null)
-                            .Select(p => new ProductDTO()
-                            {
-                                Name = p.Name,
-                                Price = p.Price
-                            })
-                            .ToList()
-                    }
+                    firstName = u.FirstName,
+                    lastName = u.LastName,
+                    soldProducts = u
+                        .ProductsSold
+                        .Where(p => p.BuyerId != null)
+                        .Select(p => new
+                        {
+                            name = p.Name,
+                            price = p.Price,
+                            buyerFirstName = p.Buyer.FirstName,
+                            buyerLastName = p.Buyer.LastName
+                        })
+                        .ToList()
                 })
+                .OrderBy(x => x.lastName)
+                .ThenBy(x => x.firstName)
                 .ToList();
-            var result = new
-            {
-                count = sortedUsers.Count,
-                users = sortedUsers
-            };
 
-            var settings = new JsonSerializerSettings()
-            {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            var json = JsonConvert.SerializeObject(result, settings);
+            var json = JsonConvert.SerializeObject(sortedUsers, Formatting.Indented);
             return json;
         }
 
