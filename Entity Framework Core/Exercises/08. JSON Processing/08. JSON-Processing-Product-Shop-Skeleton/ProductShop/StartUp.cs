@@ -24,32 +24,43 @@ namespace ProductShop
             File.WriteAllText(OutputPath + "users-sold-products.json", json);
         }
 
-        public static string GetSoldProducts(ProductShopContext context)
+        public static string GetUsersWithProducts(ProductShopContext context)
         {
             var sortedUsers = context
                 .Users
-                .Where(x => x.ProductsSold.Any(p => p.BuyerId != null))
+                .Include(x => x.ProductsSold)
+                .ToList()
+                .Where(x => x.ProductsSold.Any(a => a.BuyerId != null))
                 .Select(u => new
                 {
                     firstName = u.FirstName,
                     lastName = u.LastName,
-                    soldProducts = u
-                        .ProductsSold
-                        .Where(p => p.BuyerId != null)
-                        .Select(p => new
-                        {
-                            name = p.Name,
-                            price = p.Price,
-                            buyerFirstName = p.Buyer.FirstName,
-                            buyerLastName = p.Buyer.LastName
-                        })
-                        .ToList()
+                    age = u.Age,
+                    soldProducts = new
+                    {
+                        count = u.ProductsSold.Where(x => x.BuyerId != null).Count(),
+                        products = u.ProductsSold.Where(x => x.BuyerId != null)
+                            .Select(p => new
+                            {
+                                name = p.Name,
+                                price = p.Price
+                            })
+                    }
                 })
-                .OrderBy(x => x.lastName)
-                .ThenBy(x => x.firstName)
+                .OrderByDescending(x => x.soldProducts.products.Count())
                 .ToList();
+            var result = new
+            {
+                usersCount = sortedUsers.Count(),
+                users = sortedUsers
+            };
 
-            var json = JsonConvert.SerializeObject(sortedUsers, Formatting.Indented);
+            var settings = new JsonSerializerSettings()
+            {
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore
+            };
+            var json = JsonConvert.SerializeObject(result, settings);
             return json;
         }
 
