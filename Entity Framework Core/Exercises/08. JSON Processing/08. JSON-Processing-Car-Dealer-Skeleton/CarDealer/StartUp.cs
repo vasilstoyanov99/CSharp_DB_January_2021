@@ -17,38 +17,19 @@ namespace CarDealer
             context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
 
-            ////Insert Suppliers Data 
-            var jsonSuppliers = File.ReadAllText("../../../Datasets/suppliers.json");
-            Console.WriteLine(ImportSuppliers(context, jsonSuppliers));
-            
+            //Insert Parts Data
+            var jsonSuppliers = File.ReadAllText("../../../Datasets/parts.json");
+            Console.WriteLine(ImportParts(context, jsonSuppliers));
 
-            ////Insert Parts Data
-            //var jsonParts = File.ReadAllText("../../../Datasets/parts.json");
-            //var parts = JsonConvert.DeserializeObject<Part[]>(jsonParts);
-            //context.Parts.AddRange(parts);
-
-            ////Insert Cars Data
-            //var jsonCars = File.ReadAllText("../../../Datasets/cars.json");
-            //var cars = JsonConvert.DeserializeObject<Car[]>(jsonCars);
-            //context.Cars.AddRange(cars);
-
-            ////Insert Customers Data
-            //var jsonCustomers = File.ReadAllText("../../../Datasets/customers.json");
-            //var customers = JsonConvert.DeserializeObject<Customer[]>(jsonCustomers);
-            //context.Customers.AddRange(customers);
-
-            ////Insert Sales Data
-            //var jsonSales = File.ReadAllText("../../../Datasets/sales.json");
-            //var sales = JsonConvert.DeserializeObject<Sale[]>(jsonSales);
-            //context.Sales.AddRange(sales);
         }
 
-        public static string ImportSuppliers(CarDealerContext context, string inputJson)
+        public static string ImportParts(CarDealerContext context, string inputJson)
         {
-            var suppliers = JsonConvert.DeserializeObject<Supplier[]>(inputJson);
-            context.Suppliers.AddRange(suppliers);
+            var parts = JsonConvert.DeserializeObject<Part[]>(inputJson)
+                .Where(x => x.SupplierId >= 1 && x.SupplierId < 32);
+            context.Parts.AddRange(parts);
             context.SaveChanges();
-            var result = $"Successfully imported {suppliers.Count()}.";
+            var result = $"Successfully imported {parts.Count()}.";
             return result;
         }
     }
