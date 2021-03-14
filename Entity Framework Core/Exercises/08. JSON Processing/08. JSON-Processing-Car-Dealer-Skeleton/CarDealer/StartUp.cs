@@ -19,26 +19,28 @@ namespace CarDealer
         {
             var context = new CarDealerContext();
             EnsureDirectoryExists();
-            var json = GetOrderedCustomers(context);
-            File.WriteAllText(OutputPath + "/ordered-customers.json", json);
+            var json = GetCarsFromMakeToyota(context);
+            File.WriteAllText(OutputPath + "/toyota-cars.json", json);
 
         }
-        public static string GetOrderedCustomers(CarDealerContext context)
+
+        public static string GetCarsFromMakeToyota(CarDealerContext context)
         {
-            var sortedCustomer = context
-                .Customers
-                .Where(x => x.BirthDate != null)
-                .OrderBy(x => x.BirthDate)
-                .ThenBy(x => x.IsYoungDriver)
-                .Select(c => new CustomerDTO()
+            var sortedCars = context
+                .Cars
+                .Where(x => x.Make == "Toyota")
+                .OrderBy(x => x.Model)
+                .ThenByDescending(x => x.TravelledDistance)
+                .Select(x => new CarDTO()
                 {
-                    Name = c.Name,
-                    BirthDate = c.BirthDate.ToString("dd/MM/yyyy"),
-                    IsYoungDriver = c.IsYoungDriver
+                    Id = x.Id,
+                    Make = x.Make,
+                    Model = x.Model,
+                    TravelledDistance = x.TravelledDistance
                 })
                 .ToList();
 
-            var jsonResult = JsonConvert.SerializeObject(sortedCustomer, Formatting.Indented);
+            var jsonResult = JsonConvert.SerializeObject(sortedCars, Formatting.Indented);
             return jsonResult;
         }
 
