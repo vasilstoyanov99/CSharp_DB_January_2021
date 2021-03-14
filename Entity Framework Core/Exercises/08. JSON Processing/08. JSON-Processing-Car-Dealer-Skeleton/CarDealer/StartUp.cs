@@ -12,30 +12,28 @@ namespace CarDealer
 {
     public class StartUp
     {
-        private static IMapper mapper;
+        //private static IMapper mapper;
         public static void Main(string[] args)
         {
-            var config = new MapperConfiguration(cfg =>
-            {
-                cfg.AddProfile<CarDealerProfile>();
-            });
-            mapper = config.CreateMapper();
+            //var config = new MapperConfiguration(cfg =>
+            //{
+            //    cfg.AddProfile<CarDealerProfile>();
+            //});
+            //mapper = config.CreateMapper();
             var context = new CarDealerContext();
 
             //Insert Customers Data
-            var jsonCars = File.ReadAllText("../../../Datasets/customers.json");
-            Console.WriteLine(ImportCustomers(context, jsonCars));
+            var jsonCars = File.ReadAllText("../../../Datasets/sales.json");
+            Console.WriteLine(ImportSales(context, jsonCars));
 
         }
 
-        public static string ImportCustomers(CarDealerContext context, string inputJson)
+        public static string ImportSales(CarDealerContext context, string inputJson)
         {
-            var customersInputModels = JsonConvert
-                .DeserializeObject<IEnumerable<CustomerInputModel>>(inputJson);
-            var customers = mapper.Map<IEnumerable<Customer>>(customersInputModels);
-            context.Customers.AddRange(customers);
+            var sales = JsonConvert.DeserializeObject<Sale[]>(inputJson);
+            context.Sales.AddRange(sales);
             context.SaveChanges();
-            var result = $"Successfully imported {customersInputModels.Count()}.";
+            var result = $"Successfully imported {sales.Length}.";
             return result;
         }
     }
