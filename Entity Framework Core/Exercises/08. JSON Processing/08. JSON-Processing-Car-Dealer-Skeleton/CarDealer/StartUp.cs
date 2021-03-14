@@ -19,29 +19,25 @@ namespace CarDealer
         {
             var context = new CarDealerContext();
             EnsureDirectoryExists();
-            var json = GetCarsFromMakeToyota(context);
-            File.WriteAllText(OutputPath + "/toyota-cars.json", json);
+            var json = GetLocalSuppliers(context);
+            File.WriteAllText(OutputPath + "/local-suppliers.json", json);
 
         }
 
-        public static string GetCarsFromMakeToyota(CarDealerContext context)
+        public static string GetLocalSuppliers(CarDealerContext context)
         {
-            var sortedCars = context
-                .Cars
-                .Where(x => x.Make == "Toyota")
-                .OrderBy(x => x.Model)
-                .ThenByDescending(x => x.TravelledDistance)
-                .Select(x => new CarDTO()
+            var sortedSuppliers = context
+                .Suppliers
+                .Where(x => x.IsImporter == false)
+                .Select(s => new SupplierDTO()
                 {
-                    Id = x.Id,
-                    Make = x.Make,
-                    Model = x.Model,
-                    TravelledDistance = x.TravelledDistance
+                    Id = s.Id,
+                    Name = s.Name,
+                    PartsCount = s.Parts.Count
                 })
                 .ToList();
-
-            var jsonResult = JsonConvert.SerializeObject(sortedCars, Formatting.Indented);
-            return jsonResult;
+            var resultJson = JsonConvert.SerializeObject(sortedSuppliers, Formatting.Indented);
+            return resultJson;
         }
 
         private static void EnsureDirectoryExists()
