@@ -12,44 +12,30 @@ namespace CarDealer
 {
     public class StartUp
     {
+        private static IMapper mapper;
         public static void Main(string[] args)
         {
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<CarDealerProfile>();
+            });
+            mapper = config.CreateMapper();
             var context = new CarDealerContext();
 
-            //Insert Cars Data
-            var jsonCars = File.ReadAllText("../../../Datasets/cars.json");
-            Console.WriteLine(ImportCars(context, jsonCars));
+            //Insert Customers Data
+            var jsonCars = File.ReadAllText("../../../Datasets/customers.json");
+            Console.WriteLine(ImportCustomers(context, jsonCars));
 
         }
 
-        public static string ImportCars(CarDealerContext context, string inputJson)
+        public static string ImportCustomers(CarDealerContext context, string inputJson)
         {
-            var cars = JsonConvert.DeserializeObject<IEnumerable<CarInputModel>>(inputJson);
-            var listOfCars = new List<Car>();
-
-            foreach (var car in cars)
-            {
-                var currentCar = new Car
-                {
-                    Make = car.Make,
-                    Model = car.Model,
-                    TravelledDistance = car.TravelledDistance
-                };
-
-                foreach (var partId in car?.PartsId.Distinct())
-                {
-                    currentCar.PartCars.Add(new PartCar()
-                    {
-                        PartId = partId
-                    });
-                }
-
-                listOfCars.Add(currentCar);
-            }
-
-            context.Cars.AddRange(listOfCars);
+            var customersInputModels = JsonConvert
+                .DeserializeObject<IEnumerable<CustomerInputModel>>(inputJson);
+            var customers = mapper.Map<IEnumerable<Customer>>(customersInputModels);
+            context.Customers.AddRange(customers);
             context.SaveChanges();
-            var result = $"Successfully imported {listOfCars.Count()}.";
+            var result = $"Successfully imported {customersInputModels.Count()}.";
             return result;
         }
     }
