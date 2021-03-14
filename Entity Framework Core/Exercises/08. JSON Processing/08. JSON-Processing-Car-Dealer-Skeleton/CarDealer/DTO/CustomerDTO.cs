@@ -2,7 +2,7 @@
 
 namespace CarDealer.DTO
 {
-    public class CustomerInputModel
+    public class CustomerDTO
     {
         public string Name { get; set; }
 
