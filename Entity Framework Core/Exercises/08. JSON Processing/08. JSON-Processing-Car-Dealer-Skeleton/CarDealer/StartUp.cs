@@ -20,25 +20,34 @@ namespace CarDealer
         {
             var context = new CarDealerContext();
             EnsureDirectoryExists();
-            var json = GetTotalSalesByCustomer(context);
-            File.WriteAllText(OutputPath + "/customers-total-sales.json", json);
+            var json = GetSalesWithAppliedDiscount(context);
+            File.WriteAllText(OutputPath + "/sales-discounts.json", json);
         }
 
-        public static string GetTotalSalesByCustomer(CarDealerContext context)
+        public static string GetSalesWithAppliedDiscount(CarDealerContext context)
         {
-            var sortedCustomers = context
-                .Customers
-                .Where(x => x.Sales.Any(s => s.Car != null))
-                .Select(c => new
+            var sortedSales = context
+                .Sales
+                .Select(s => new
                 {
-                    fullName = c.Name,
-                    boughtCars = c.Sales.Count(x => x.Car != null),
-                    spentMoney = c.Sales.Sum(x => x.Car.PartCars.Sum(p => p.Part.Price))
+                    car = new
+                    {
+                        s.Car.Make,
+                        s.Car.Model,
+                        s.Car.TravelledDistance
+                    },
+                    customerName = s.Customer.Name,
+                    Discount = s.Discount.ToString("F2"),
+                    price = s.Car.PartCars.Sum(x => x.Part.Price).ToString("F2"),
+                    priceWithDiscount = s.Discount <= 0
+                        ? s.Car.PartCars.Sum(p => p.Part.Price).ToString("F2")
+                        : ((s.Car.PartCars.Sum(p => p.Part.Price)) -
+                          (s.Car.PartCars.Sum(p => p.Part.Price) * s.Discount / 100)).ToString("F2")
                 })
-                .OrderByDescending(x => x.spentMoney)
-                .ThenByDescending(x => x.boughtCars)
+                .Take(10)
                 .ToList();
-            var jsonResult = JsonConvert.SerializeObject(sortedCustomers, Formatting.Indented);
+
+            var jsonResult = JsonConvert.SerializeObject(sortedSales, Formatting.Indented);
             return jsonResult;
         }
 
