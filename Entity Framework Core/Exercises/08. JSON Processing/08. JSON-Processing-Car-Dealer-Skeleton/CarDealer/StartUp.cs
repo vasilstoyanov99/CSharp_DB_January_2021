@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using AutoMapper;
 using CarDealer.Data;
 using CarDealer.DTO;
@@ -19,34 +20,26 @@ namespace CarDealer
         {
             var context = new CarDealerContext();
             EnsureDirectoryExists();
-            var json = GetCarsWithTheirListOfParts(context);
-            File.WriteAllText(OutputPath + "/cars-and-parts.json", json);
-
+            var json = GetTotalSalesByCustomer(context);
+            File.WriteAllText(OutputPath + "/customers-total-sales.json", json);
         }
 
-        public static string GetCarsWithTheirListOfParts(CarDealerContext context)
+        public static string GetTotalSalesByCustomer(CarDealerContext context)
         {
-            var carsAndParts = context
-                .Cars
-                .Select(c => new OnlyCarDTO()
+            var sortedCustomers = context
+                .Customers
+                .Where(x => x.Sales.Any(s => s.Car != null))
+                .Select(c => new
                 {
-                    Car = new CarAndPartsDTO()
-                    {
-                        Make = c.Make,
-                        Model = c.Model,
-                        TravelledDistance = c.TravelledDistance,
-                        Parts = c.PartCars.Select(y => new PartDTO()
-                        {
-                            Name = y.Part.Name,
-                            Price = y.Part.Price.ToString("f2")
-                        })
-
-                    }
+                    fullName = c.Name,
+                    boughtCars = c.Sales.Count(x => x.Car != null),
+                    spentMoney = c.Sales.Sum(x => x.Car.PartCars.Sum(p => p.Part.Price))
                 })
+                .OrderByDescending(x => x.spentMoney)
+                .ThenByDescending(x => x.boughtCars)
                 .ToList();
-
-            var resultJson = JsonConvert.SerializeObject(carsAndParts, Formatting.Indented);
-            return resultJson;
+            var jsonResult = JsonConvert.SerializeObject(sortedCustomers, Formatting.Indented);
+            return jsonResult;
         }
 
         private static void EnsureDirectoryExists()
