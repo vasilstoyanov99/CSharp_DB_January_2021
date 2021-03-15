@@ -45,8 +45,8 @@ namespace CarDealer
                 })
                 .ToList();
 
-            var result = JsonConvert.SerializeObject(carsAndParts, Formatting.Indented);
-            return result;
+            var resultJson = JsonConvert.SerializeObject(carsAndParts, Formatting.Indented);
+            return resultJson;
         }
 
         private static void EnsureDirectoryExists()
