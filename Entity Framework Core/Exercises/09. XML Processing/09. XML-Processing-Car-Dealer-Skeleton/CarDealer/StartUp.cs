@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -15,7 +14,7 @@ namespace CarDealer
         public static void Main(string[] args)
         {
             var context = new CarDealerContext();
-            var inputXml = File.ReadAllText("./Datasets/customers.xml");
+            var inputXml = File.ReadAllText("./Datasets/sales.xml");
             //context.Database.EnsureDeleted();
             //context.Database.EnsureCreated();
             Console.WriteLine(ImportSales(context, inputXml));
