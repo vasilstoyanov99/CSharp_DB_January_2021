@@ -15,59 +15,30 @@ namespace CarDealer
         public static void Main(string[] args)
         {
             var context = new CarDealerContext();
-            var inputXml = File.ReadAllText("./Datasets/cars.xml");
+            var inputXml = File.ReadAllText("./Datasets/customers.xml");
             //context.Database.EnsureDeleted();
             //context.Database.EnsureCreated();
-            Console.WriteLine(ImportCars(context, inputXml));
+            Console.WriteLine(ImportCustomers(context, inputXml));
         }
 
-        public static string ImportCars(CarDealerContext context, string inputXml)
+        public static string ImportCustomers(CarDealerContext context, string inputXml)
         {
-            const string root = "Cars";
-            var xmlSerializer = new XmlSerializer(typeof(CarInputModel[]),
+            const string root = "Customers";
+            var xmlSerializer = new XmlSerializer(typeof(CustomerInputModel[]),
                 new XmlRootAttribute(root));
             var stringReader = new StringReader(inputXml);
-            var carDTOs = xmlSerializer.Deserialize(stringReader) as CarInputModel[];
-            var partsIds = context
-                .Parts
-                .Select(x => x.Id)
+            var customerDTOs = xmlSerializer.Deserialize(stringReader) as CustomerInputModel[];
+            var customers = customerDTOs
+                .Select(c => new Customer()
+                {
+                    Name = c.Name,
+                    BirthDate = c.BirthDate,
+                    IsYoungDriver = c.IsYoungDriver
+                })
                 .ToList();
-            var cars = new List<Car>();
-            var partsCars = new List<PartCar>();
-
-            foreach (var carDTO in carDTOs)
-            {
-                var car = new Car()
-                {
-                    Make = carDTO.Make,
-                    Model = carDTO.Model,
-                    TravelledDistance = carDTO.TraveledDistance,
-                };
-
-                var sortedParts = carDTO
-                    .Parts
-                    .Where(p => partsIds.Contains(p.Id))
-                    .Select(p => p.Id)
-                    .Distinct();
-
-                foreach (var partIds in sortedParts)
-                {
-                    var partCar = new PartCar()
-                    {
-                        PartId = partIds,
-                        Car = car
-                    };
-                    
-                    partsCars.Add(partCar);
-                }
-
-                cars.Add(car);
-            }
-
-            context.AddRange(cars);
-            context.AddRange(partsCars);
+            context.Customers.AddRange(customers);
             context.SaveChanges();
-            return $"Successfully imported {cars.Count}";
+            return $"Successfully imported {customers.Count}";
         }
     }
 }
