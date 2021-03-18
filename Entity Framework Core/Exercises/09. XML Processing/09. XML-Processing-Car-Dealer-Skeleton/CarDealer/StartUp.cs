@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 
 using CarDealer.Data;
 using CarDealer.DataTransferObjects.ExportModels;
@@ -20,36 +17,35 @@ namespace CarDealer
             var context = new CarDealerContext();
 
             EnsureDirectoryExists();
-            var resultXml = GetCarsWithDistance(context);
-            File.WriteAllText(OutputPath + "/cars.xml", resultXml);
+            var resultXml = GetCarsFromMakeBmw(context);
+            File.WriteAllText(OutputPath + "/bmw-cars.xml", resultXml);
         }
 
-        public static string GetCarsWithDistance(CarDealerContext context)
+        public static string GetCarsFromMakeBmw(CarDealerContext context)
         {
             const string root = "cars";
-            var sortedCars = context
+            var onlyBMWCars = context
                 .Cars
-                .Where(x => x.TravelledDistance > 2_000_000)
-                .Select(x => new CarWithDistanceEM()
+                .Where(x => x.Make == "BMW")
+                .OrderBy(x => x.Model)
+                .ThenByDescending(x => x.TravelledDistance)
+                .Select(x => new OnlyBMWCarEM()
                 {
-                    Make = x.Make,
+                    Id = x.Id,
                     Model = x.Model,
                     TravelledDistance = x.TravelledDistance
                 })
-                .OrderBy(x => x.Make)
-                .ThenBy(x => x.Model)
-                .Take(10)
                 .ToList();
-            var xmlSerializer = new XmlSerializer(typeof(List<CarWithDistanceEM>), 
+            var xmlSerializer = new XmlSerializer(typeof(List<OnlyBMWCarEM>),
                 new XmlRootAttribute(root));
-            var namespaces = new XmlSerializerNamespaces();
-            namespaces.Add("", "");
             var result = new StringBuilder();
             var writer = new StringWriter(result);
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add("", "");
 
             using (writer)
             {
-                xmlSerializer.Serialize(writer, sortedCars, namespaces);
+                xmlSerializer.Serialize(writer, onlyBMWCars, namespaces);
             }
 
             return result.ToString();
