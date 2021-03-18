@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Xml.Serialization;
 using AutoMapper;
+
 using CarDealer.Data;
 using CarDealer.DataTransferObjects;
 using CarDealer.Models;
