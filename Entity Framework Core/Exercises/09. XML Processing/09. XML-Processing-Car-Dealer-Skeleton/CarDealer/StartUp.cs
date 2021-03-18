@@ -18,27 +18,32 @@ namespace CarDealer
             var inputXml = File.ReadAllText("./Datasets/customers.xml");
             //context.Database.EnsureDeleted();
             //context.Database.EnsureCreated();
-            Console.WriteLine(ImportCustomers(context, inputXml));
+            Console.WriteLine(ImportSales(context, inputXml));
         }
 
-        public static string ImportCustomers(CarDealerContext context, string inputXml)
+        public static string ImportSales(CarDealerContext context, string inputXml)
         {
-            const string root = "Customers";
-            var xmlSerializer = new XmlSerializer(typeof(CustomerInputModel[]),
+            const string root = "Sales";
+            var xmlSerializer = new XmlSerializer(typeof(SaleInputModel[]),
                 new XmlRootAttribute(root));
             var stringReader = new StringReader(inputXml);
-            var customerDTOs = xmlSerializer.Deserialize(stringReader) as CustomerInputModel[];
-            var customers = customerDTOs
-                .Select(c => new Customer()
+            var saleDTOs = xmlSerializer.Deserialize(stringReader) as SaleInputModel[];
+            var carIds = context
+                .Cars
+                .Select(c => c.Id)
+                .ToList();
+            var sales = saleDTOs
+                .Where(x => carIds.Contains(x.CarId))
+                .Select(s => new Sale()
                 {
-                    Name = c.Name,
-                    BirthDate = c.BirthDate,
-                    IsYoungDriver = c.IsYoungDriver
+                    CarId = s.CarId,
+                    CustomerId = s.CustomerId,
+                    Discount = s.Discount
                 })
                 .ToList();
-            context.Customers.AddRange(customers);
+            context.Sales.AddRange(sales);
             context.SaveChanges();
-            return $"Successfully imported {customers.Count}";
+            return $"Successfully imported {sales.Count}";
         }
     }
 }
