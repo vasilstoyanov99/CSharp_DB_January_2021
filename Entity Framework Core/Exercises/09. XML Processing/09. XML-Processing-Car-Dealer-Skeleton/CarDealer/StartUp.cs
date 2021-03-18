@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
-using AutoMapper;
 
 using CarDealer.Data;
 using CarDealer.DataTransferObjects;
@@ -15,36 +15,59 @@ namespace CarDealer
         public static void Main(string[] args)
         {
             var context = new CarDealerContext();
-            var inputXml = File.ReadAllText("./Datasets/parts.xml");
+            var inputXml = File.ReadAllText("./Datasets/cars.xml");
             //context.Database.EnsureDeleted();
             //context.Database.EnsureCreated();
-            Console.WriteLine(ImportParts(context, inputXml));
+            Console.WriteLine(ImportCars(context, inputXml));
         }
 
-        public static string ImportParts(CarDealerContext context, string inputXml)
+        public static string ImportCars(CarDealerContext context, string inputXml)
         {
-            const string root = "Parts";
-            var xmlSerializer = new XmlSerializer(typeof(PartInputModel[]), 
+            const string root = "Cars";
+            var xmlSerializer = new XmlSerializer(typeof(CarInputModel[]),
                 new XmlRootAttribute(root));
             var stringReader = new StringReader(inputXml);
-            var partsDTOs = xmlSerializer.Deserialize(stringReader) as PartInputModel[];
-            var suppliersIds = context
-                .Suppliers
+            var carDTOs = xmlSerializer.Deserialize(stringReader) as CarInputModel[];
+            var partsIds = context
+                .Parts
                 .Select(x => x.Id)
                 .ToList();
-            var parts = partsDTOs
-                .Where(x => suppliersIds.Contains(x.SupplierId))
-                .Select(x => new Part()
+            var cars = new List<Car>();
+            var partsCars = new List<PartCar>();
+
+            foreach (var carDTO in carDTOs)
+            {
+                var car = new Car()
                 {
-                    Name = x.Name,
-                    Price = x.Price,
-                    Quantity = x.Quantity,
-                    SupplierId = x.SupplierId
-                })
-                .ToList();
-            context.Parts.AddRange(parts);
+                    Make = carDTO.Make,
+                    Model = carDTO.Model,
+                    TravelledDistance = carDTO.TraveledDistance,
+                };
+
+                var sortedParts = carDTO
+                    .Parts
+                    .Where(p => partsIds.Contains(p.Id))
+                    .Select(p => p.Id)
+                    .Distinct();
+
+                foreach (var partIds in sortedParts)
+                {
+                    var partCar = new PartCar()
+                    {
+                        PartId = partIds,
+                        Car = car
+                    };
+                    
+                    partsCars.Add(partCar);
+                }
+
+                cars.Add(car);
+            }
+
+            context.AddRange(cars);
+            context.AddRange(partsCars);
             context.SaveChanges();
-            return $"Successfully imported {parts.Count}";
+            return $"Successfully imported {cars.Count}";
         }
     }
 }
