@@ -17,26 +17,24 @@ namespace CarDealer
             var context = new CarDealerContext();
 
             EnsureDirectoryExists();
-            var resultXml = GetCarsFromMakeBmw(context);
-            File.WriteAllText(OutputPath + "/bmw-cars.xml", resultXml);
+            var resultXml = GetLocalSuppliers(context);
+            File.WriteAllText(OutputPath + "/local-suppliers.xml", resultXml);
         }
 
-        public static string GetCarsFromMakeBmw(CarDealerContext context)
+        public static string GetLocalSuppliers(CarDealerContext context)
         {
-            const string root = "cars";
-            var onlyBMWCars = context
-                .Cars
-                .Where(x => x.Make == "BMW")
-                .OrderBy(x => x.Model)
-                .ThenByDescending(x => x.TravelledDistance)
-                .Select(x => new OnlyBMWCarEM()
+            const string root = "suppliers";
+            var sortedSuppliers = context
+                .Suppliers
+                .Where(x => x.IsImporter == false)
+                .Select(x => new LocalSupplierEM()
                 {
                     Id = x.Id,
-                    Model = x.Model,
-                    TravelledDistance = x.TravelledDistance
+                    Name = x.Name,
+                    PartsCount = x.Parts.Count()
                 })
                 .ToList();
-            var xmlSerializer = new XmlSerializer(typeof(List<OnlyBMWCarEM>),
+            var xmlSerializer = new XmlSerializer(typeof(List<LocalSupplierEM>),
                 new XmlRootAttribute(root));
             var result = new StringBuilder();
             var writer = new StringWriter(result);
@@ -45,7 +43,7 @@ namespace CarDealer
 
             using (writer)
             {
-                xmlSerializer.Serialize(writer, onlyBMWCars, namespaces);
+                xmlSerializer.Serialize(writer, sortedSuppliers, namespaces);
             }
 
             return result.ToString();
