@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 
 using CarDealer.Data;
 using CarDealer.DataTransferObjects;
+using CarDealer.DataTransferObjects.InputModels;
 using CarDealer.Models;
 
 namespace CarDealer

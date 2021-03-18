@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace CarDealer.DataTransferObjects
+namespace CarDealer.DataTransferObjects.InputModels
 {
     [XmlType("partId")]
     public class CarPartInputModel

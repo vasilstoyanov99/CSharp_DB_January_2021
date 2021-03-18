@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace CarDealer.DataTransferObjects
+namespace CarDealer.DataTransferObjects.InputModels
 {
     [XmlType("Car")]
     public class CarInputModel

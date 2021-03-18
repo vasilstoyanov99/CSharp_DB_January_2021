@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace CarDealer.DataTransferObjects
+namespace CarDealer.DataTransferObjects.InputModels
 {
     [XmlType("Supplier")]
     public class SupplierInputModel
