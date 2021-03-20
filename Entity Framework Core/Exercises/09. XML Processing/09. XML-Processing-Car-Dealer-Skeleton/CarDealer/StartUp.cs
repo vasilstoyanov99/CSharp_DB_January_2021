@@ -17,33 +17,43 @@ namespace CarDealer
             var context = new CarDealerContext();
 
             EnsureDirectoryExists();
-            var resultXml = GetLocalSuppliers(context);
-            File.WriteAllText(OutputPath + "/local-suppliers.xml", resultXml);
+            var resultXml = GetCarsWithTheirListOfParts(context);
+            File.WriteAllText(OutputPath + "/cars-and-parts.xml", resultXml);
         }
 
-        public static string GetLocalSuppliers(CarDealerContext context)
+        public static string GetCarsWithTheirListOfParts(CarDealerContext context)
         {
-            const string root = "suppliers";
-            var sortedSuppliers = context
-                .Suppliers
-                .Where(x => x.IsImporter == false)
-                .Select(x => new LocalSupplierEM()
+            var carsWithParts = context
+                .Cars
+                .Select(x => new CarsEM
                 {
-                    Id = x.Id,
-                    Name = x.Name,
-                    PartsCount = x.Parts.Count()
+                    Make = x.Make,
+                    Model = x.Model,
+                    TravelledDistance = x.TravelledDistance,
+                    Parts = x.PartCars
+                        .Select(pt => new PartsEM
+                        {
+                            Name = pt.Part.Name,
+                            Price = pt.Part.Price
+                        })
+                        .OrderByDescending(p => p.Price)
+                        .ToArray()
                 })
-                .ToList();
-            var xmlSerializer = new XmlSerializer(typeof(List<LocalSupplierEM>),
+                .OrderByDescending(c => c.TravelledDistance)
+                .ThenBy(p => p.Model)
+                .Take(5)
+                .ToArray();
+            var root = "cars";
+            var xmlSerializer = new XmlSerializer(typeof(CarsEM[]),
                 new XmlRootAttribute(root));
-            var result = new StringBuilder();
-            var writer = new StringWriter(result);
             var namespaces = new XmlSerializerNamespaces();
             namespaces.Add("", "");
+            var result = new StringBuilder();
+            var writer = new StringWriter(result);
 
             using (writer)
             {
-                xmlSerializer.Serialize(writer, sortedSuppliers, namespaces);
+                xmlSerializer.Serialize(writer, carsWithParts, namespaces);
             }
 
             return result.ToString();
