@@ -2,7 +2,7 @@
 
 namespace CarDealer.DataTransferObjects.ExportModels
 {
-    [XmlType("cars")]
+    [XmlType("car")]
     public class CarsEM
     {
         [XmlAttribute("make")] 
