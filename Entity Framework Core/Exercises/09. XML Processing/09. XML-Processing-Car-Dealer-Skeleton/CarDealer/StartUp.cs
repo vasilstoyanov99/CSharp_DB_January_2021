@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Xml.Serialization;
 
 using CarDealer.Data;
 using CarDealer.DataTransferObjects.ExportModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarDealer
 {
@@ -17,43 +19,38 @@ namespace CarDealer
             var context = new CarDealerContext();
 
             EnsureDirectoryExists();
-            var resultXml = GetCarsWithTheirListOfParts(context);
-            File.WriteAllText(OutputPath + "/cars-and-parts.xml", resultXml);
+            var resultXml = GetTotalSalesByCustomer(context);
+            File.WriteAllText(OutputPath + "/customers-total-sales.xml", resultXml);
         }
 
-        public static string GetCarsWithTheirListOfParts(CarDealerContext context)
+        public static string GetTotalSalesByCustomer(CarDealerContext context)
         {
-            var carsWithParts = context
-                .Cars
-                .Select(x => new CarsEM
+            var sortedCustomers = context
+                .Customers
+                .Include(s => s.Sales)
+                .ThenInclude(c => c.Car)
+                .ThenInclude(pt => pt.PartCars)
+                .ThenInclude(p => p.Part)
+                .ToList()
+                .Select(c => new TotalSalesByCustomerEM()
                 {
-                    Make = x.Make,
-                    Model = x.Model,
-                    TravelledDistance = x.TravelledDistance,
-                    Parts = x.PartCars
-                        .Select(pt => new PartsEM
-                        {
-                            Name = pt.Part.Name,
-                            Price = pt.Part.Price
-                        })
-                        .OrderByDescending(p => p.Price)
-                        .ToArray()
+                    FullName = c.Name,
+                    BoughtCars = c.Sales.Count,
+                    SpentMoney = c.Sales.Sum(s => s.Car.PartCars.Sum(pt => pt.Part.Price))
                 })
-                .OrderByDescending(c => c.TravelledDistance)
-                .ThenBy(p => p.Model)
-                .Take(5)
-                .ToArray();
-            var root = "cars";
-            var xmlSerializer = new XmlSerializer(typeof(CarsEM[]),
+                .OrderByDescending(c => c.SpentMoney)
+                .ToList();
+            const string root = "customers";
+            var xmlSerializer = new XmlSerializer(typeof(List<TotalSalesByCustomerEM>),
                 new XmlRootAttribute(root));
             var namespaces = new XmlSerializerNamespaces();
-            namespaces.Add("", "");
+            namespaces.Add(String.Empty, String.Empty);
             var result = new StringBuilder();
             var writer = new StringWriter(result);
 
             using (writer)
             {
-                xmlSerializer.Serialize(writer, carsWithParts, namespaces);
+                xmlSerializer.Serialize(writer, sortedCustomers, namespaces);
             }
 
             return result.ToString();
