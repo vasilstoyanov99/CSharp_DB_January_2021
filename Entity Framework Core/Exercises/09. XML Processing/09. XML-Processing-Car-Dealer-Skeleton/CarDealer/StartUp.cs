@@ -7,7 +7,6 @@ using System.Xml.Serialization;
 
 using CarDealer.Data;
 using CarDealer.DataTransferObjects.ExportModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace CarDealer
 {
@@ -19,29 +18,34 @@ namespace CarDealer
             var context = new CarDealerContext();
 
             EnsureDirectoryExists();
-            var resultXml = GetTotalSalesByCustomer(context);
-            File.WriteAllText(OutputPath + "/customers-total-sales.xml", resultXml);
+            var resultXml = GetSalesWithAppliedDiscount(context);
+            File.WriteAllText(OutputPath + "/sales-discounts.xml", resultXml);
         }
 
-        public static string GetTotalSalesByCustomer(CarDealerContext context)
+        public static string GetSalesWithAppliedDiscount(CarDealerContext context)
         {
-            var sortedCustomers = context
-                .Customers
-                .Include(s => s.Sales)
-                .ThenInclude(c => c.Car)
-                .ThenInclude(pt => pt.PartCars)
-                .ThenInclude(p => p.Part)
+            var sales = context
+                .Sales
                 .ToList()
-                .Select(c => new TotalSalesByCustomerEM()
+                .Select(x => new SalesWithAppliedDiscountEM()
                 {
-                    FullName = c.Name,
-                    BoughtCars = c.Sales.Count,
-                    SpentMoney = c.Sales.Sum(s => s.Car.PartCars.Sum(pt => pt.Part.Price))
+                    Sales = x.Customer.Sales.Select(s => new SaleWithDiscountEM()
+                        {
+                            Make = s.Car.Make,
+                            Model = s.Car.Model,
+                            TravelledDistance = x.Car.TravelledDistance,
+                            Discount = s.Discount,
+                            CustomerName = s.Customer.Name,
+                            Price = x.Car.PartCars.Sum(p => p.Part.Price),
+                            PriceWithDiscount = (x.Car.PartCars.Sum(p => p.Part.Price))
+                                                - ((x.Car.PartCars
+                                                    .Sum(p => p.Part.Price) * s.Discount) / 100)
+                        })
+                        .ToList()
                 })
-                .OrderByDescending(c => c.SpentMoney)
                 .ToList();
-            const string root = "customers";
-            var xmlSerializer = new XmlSerializer(typeof(List<TotalSalesByCustomerEM>),
+            const string root = "sales";
+            var xmlSerializer = new XmlSerializer(typeof(List<SalesWithAppliedDiscountEM>),
                 new XmlRootAttribute(root));
             var namespaces = new XmlSerializerNamespaces();
             namespaces.Add(String.Empty, String.Empty);
@@ -50,7 +54,7 @@ namespace CarDealer
 
             using (writer)
             {
-                xmlSerializer.Serialize(writer, sortedCustomers, namespaces);
+                xmlSerializer.Serialize(writer, sales, namespaces);
             }
 
             return result.ToString();
@@ -63,6 +67,5 @@ namespace CarDealer
                 Directory.CreateDirectory(OutputPath);
             }
         }
-
     }
 }
