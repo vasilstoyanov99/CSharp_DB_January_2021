@@ -14,27 +14,28 @@ namespace ProductShop
         public static void Main(string[] args)
         {
             var context = new ProductShopContext();
-            var json = File.ReadAllText("./Datasets/categories.xml");
-            Console.WriteLine(ImportCategories(context, json));
+            var json = File.ReadAllText("./Datasets/categories-products.xml");
+            Console.WriteLine(ImportCategoryProducts(context, json));
         }
 
-        public static string ImportCategories(ProductShopContext context, string inputXml)
+        public static string ImportCategoryProducts(ProductShopContext context, string inputXml)
         {
-            const string root = "Categories";
-            var xmlSerializer = new XmlSerializer(typeof(List<CategoryImportModel>),
+            const string root = "CategoryProducts";
+            var xmlSerializer = new XmlSerializer(typeof(List<CategoryProductImportModel>),
                 new XmlRootAttribute(root));
             var stringReader = new StringReader(inputXml);
-            var categoriesDTOs = xmlSerializer.Deserialize(stringReader)
-                as List<CategoryImportModel>;
-            var categories = categoriesDTOs
-                .Select(c => new Category
+            var categoryProductsDTOs = xmlSerializer.Deserialize(stringReader)
+                as List<CategoryProductImportModel>;
+            var categoryProducts = categoryProductsDTOs
+                .Select(ct => new CategoryProduct()
                 {
-                    Name = c.Name
+                    CategoryId = ct.CategoryId,
+                    ProductId = ct.ProductId
                 })
                 .ToList();
-            context.Categories.AddRange(categories);
+            context.CategoryProducts.AddRange(categoryProducts);
             context.SaveChanges();
-            return $"Successfully imported {categories.Count}";
+            return $"Successfully imported {categoryProducts.Count}";
         }
     }
 }
