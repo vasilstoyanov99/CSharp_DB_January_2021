@@ -14,28 +14,27 @@ namespace ProductShop
         public static void Main(string[] args)
         {
             var context = new ProductShopContext();
-            var json = File.ReadAllText("./Datasets/users.xml");
-            Console.WriteLine(ImportUsers(context, json));
+            var json = File.ReadAllText("./Datasets/categories.xml");
+            Console.WriteLine(ImportCategories(context, json));
         }
 
-        public static string ImportUsers(ProductShopContext context, string inputXml)
+        public static string ImportCategories(ProductShopContext context, string inputXml)
         {
-            const string root = "Users";
-            var xmlSerializer = new XmlSerializer(typeof(List<ImportUsersDTO>),
+            const string root = "Categories";
+            var xmlSerializer = new XmlSerializer(typeof(List<CategoryImportModel>),
                 new XmlRootAttribute(root));
             var stringReader = new StringReader(inputXml);
-            var usersDTO = xmlSerializer.Deserialize(stringReader) as List<ImportUsersDTO>;
-            var users = usersDTO
-                .Select(u => new User
+            var categoriesDTOs = xmlSerializer.Deserialize(stringReader)
+                as List<CategoryImportModel>;
+            var categories = categoriesDTOs
+                .Select(c => new Category
                 {
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Age = u.Age
+                    Name = c.Name
                 })
                 .ToList();
-            context.Users.AddRange(users);
+            context.Categories.AddRange(categories);
             context.SaveChanges();
-            return $"Successfully imported {users.Count}";
+            return $"Successfully imported {categories.Count}";
         }
     }
 }

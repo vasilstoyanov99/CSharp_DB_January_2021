@@ -3,7 +3,7 @@
 namespace ProductShop.DataTransferObjects.Import
 {
     [XmlType("User")]
-    public class UsersInputModel
+    public class UserInputModel
     {
         [XmlElement("firstName")] 
         public string FirstName { get; set; }
