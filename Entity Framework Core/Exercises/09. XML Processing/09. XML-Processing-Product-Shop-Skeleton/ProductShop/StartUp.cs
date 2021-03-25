@@ -2,40 +2,60 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Serialization;
 using ProductShop.Data;
-using ProductShop.DataTransferObjects.Import;
-using ProductShop.Models;
+using ProductShop.DataTransferObjects.Export;
 
 namespace ProductShop
 {
     public class StartUp
     {
+        private static string OutputPath = "../../../Datasets/Output";
         public static void Main(string[] args)
         {
             var context = new ProductShopContext();
-            var json = File.ReadAllText("./Datasets/categories-products.xml");
-            Console.WriteLine(ImportCategoryProducts(context, json));
+            EnsureDirectoryExists();
+            var jsonResult = GetProductsInRange(context);
+            File.WriteAllText(OutputPath + "/products-in-range.xml", jsonResult);
         }
 
-        public static string ImportCategoryProducts(ProductShopContext context, string inputXml)
+        public static string GetProductsInRange(ProductShopContext context)
         {
-            const string root = "CategoryProducts";
-            var xmlSerializer = new XmlSerializer(typeof(List<CategoryProductImportModel>),
-                new XmlRootAttribute(root));
-            var stringReader = new StringReader(inputXml);
-            var categoryProductsDTOs = xmlSerializer.Deserialize(stringReader)
-                as List<CategoryProductImportModel>;
-            var categoryProducts = categoryProductsDTOs
-                .Select(ct => new CategoryProduct()
+            var sortedProducts = context
+                .Products
+                .Where(p => p.Price >= 500 && p.Price <= 1000)
+                .Select(p => new ProductsInRangeExportModel
                 {
-                    CategoryId = ct.CategoryId,
-                    ProductId = ct.ProductId
+                    Price = p.Price,
+                    Name = p.Name,
+                    BuyerName = p.Buyer.FirstName + " " + p.Buyer.LastName
                 })
+                .OrderBy(p => p.Price)
+                .Take(10)
                 .ToList();
-            context.CategoryProducts.AddRange(categoryProducts);
-            context.SaveChanges();
-            return $"Successfully imported {categoryProducts.Count}";
+            const string root = "Products";
+            var xmlSerializer = new XmlSerializer(typeof(List<ProductsInRangeExportModel>),
+                new XmlRootAttribute(root));
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add(String.Empty, String.Empty);
+            var result = new StringBuilder();
+            var writer = new StringWriter(result);
+
+            using (writer)
+            {
+                xmlSerializer.Serialize(writer, sortedProducts, namespaces);
+            }
+
+            return result.ToString();
+        }
+
+        private static void EnsureDirectoryExists()
+        {
+            if (!Directory.Exists(OutputPath))
+            {
+                Directory.CreateDirectory(OutputPath);
+            }
         }
     }
 }
