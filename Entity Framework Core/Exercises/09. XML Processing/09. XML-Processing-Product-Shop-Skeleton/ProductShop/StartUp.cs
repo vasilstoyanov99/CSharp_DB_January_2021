@@ -16,42 +16,36 @@ namespace ProductShop
         {
             var context = new ProductShopContext();
             EnsureDirectoryExists();
-            var jsonResult = GetSoldProducts(context);
-            File.WriteAllText(OutputPath + "/users-sold-products.xml", jsonResult);
+            var jsonResult = GetCategoriesByProductsCount(context);
+            File.WriteAllText(OutputPath + "/categories-by-products.xml", jsonResult);
         }
 
-        public static string GetSoldProducts(ProductShopContext context)
+        public static string GetCategoriesByProductsCount(ProductShopContext context)
         {
-            var sortedItems = context
-                .Users
-                .Where(u => u.ProductsSold.Any(p => p.BuyerId != null))
-                .Select(u => new UsersSoldProductsExportProducts()
+            var sortedCategories = context
+                .Categories
+                .Select(c => new CategoriesByProductsCountExportModels()
                 {
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    SoldProducts = u.ProductsSold
-                        .Select(ps => new SoldProductExportModel()
-                        {
-                            Name = ps.Name,
-                            Price = ps.Price
-                        })
-                        .ToArray()
+                    Name = c.Name,
+                    Count = c.CategoryProducts.Count,
+                    AveragePrice = c.CategoryProducts.Average(p => p.Product.Price),
+                    TotalRevenue = c.CategoryProducts.Sum(p => p.Product.Price)
                 })
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName)
-                .Take(5)
-                .ToArray();
-            const string root = "Users";
-            var xmlSerializer = new XmlSerializer(typeof(UsersSoldProductsExportProducts[]),
-                new XmlRootAttribute(root));
+                .OrderByDescending(c => c.Count)
+                .ThenBy(c => c.TotalRevenue)
+                .ToList();
+            const string root = "Categories";
             var namespaces = new XmlSerializerNamespaces();
             namespaces.Add(String.Empty, String.Empty);
+            var xmlSerializer = new XmlSerializer(typeof
+                    (List<CategoriesByProductsCountExportModels>),
+                new XmlRootAttribute(root));
             var result = new StringBuilder();
             var writer = new StringWriter(result);
 
             using (writer)
             {
-                xmlSerializer.Serialize(writer, sortedItems, namespaces);
+                xmlSerializer.Serialize(writer, sortedCategories, namespaces);
             }
 
             return result.ToString();
