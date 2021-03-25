@@ -3,12 +3,12 @@
 namespace ProductShop.DataTransferObjects.Export
 {
     [XmlType("SoldProducts")]
-    public class SoldProductExportModel
+    public class SoldProductsExportModel
     {
         [XmlElement("count")]
         public int Count { get; set; }
 
-        [XmlArray("products")] 
+        [XmlArray("products")]
         public ProductExportModel[] Products { get; set; }
     }
 }

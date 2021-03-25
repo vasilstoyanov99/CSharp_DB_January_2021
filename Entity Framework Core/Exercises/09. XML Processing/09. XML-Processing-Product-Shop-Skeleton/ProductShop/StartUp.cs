@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using Microsoft.EntityFrameworkCore;
 using ProductShop.Data;
 using ProductShop.DataTransferObjects.Export;
 
@@ -16,8 +17,8 @@ namespace ProductShop
         {
             var context = new ProductShopContext();
             EnsureDirectoryExists();
-            var jsonResult = GetCategoriesByProductsCount(context);
-            File.WriteAllText(OutputPath + "/categories-by-products.xml", jsonResult);
+            var jsonResult = GetUsersWithProducts(context);
+            File.WriteAllText(OutputPath + "/users-and-products.xml", jsonResult);
         }
 
         public static string GetCategoriesByProductsCount(ProductShopContext context)
@@ -46,6 +47,55 @@ namespace ProductShop
             using (writer)
             {
                 xmlSerializer.Serialize(writer, sortedCategories, namespaces);
+            }
+
+            return result.ToString();
+        }
+
+        public static string GetUsersWithProducts(ProductShopContext context)
+        {
+            var sortedUsers = new UsersCountExportModel
+            {
+                Count = context.Users.Count(u => u.ProductsSold
+                    .Any(b => b.BuyerId != null)),
+                Users = context
+                    .Users
+                    .Include(x => x.ProductsSold)
+                    .ToArray()
+                    .Where(u => u.ProductsSold.Count >= 1)
+                    .OrderByDescending(u => u.ProductsSold.Count)
+                    .Select(u => new UsersAndProductsExportModel()
+                    {
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Age = u.Age,
+                        SoldProducts = new SoldProductExportModel()
+                        {
+                            Count = u.ProductsSold.Count(ps => ps.Buyer != null),
+                            Products = u.ProductsSold
+                                .Select(ps => new ProductExportModel()
+                                {
+                                    Name = ps.Name,
+                                    Price = ps.Price
+                                })
+                                .OrderByDescending(ps => ps.Price)
+                                .Take(10)
+                                .ToArray()
+                        }
+                    })
+                    .ToArray()
+            };
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add(String.Empty, String.Empty);
+            const string root = "Users";
+            var xmlSerializer = new XmlSerializer(typeof(UsersCountExportModel),
+                new XmlRootAttribute(root));
+            var result = new StringBuilder();
+            var writer = new StringWriter(result);
+
+            using (writer)
+            {
+                xmlSerializer.Serialize(writer, sortedUsers, namespaces);
             }
 
             return result.ToString();
