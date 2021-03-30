@@ -14,7 +14,6 @@ namespace SoftJail.Data.Models
         [Key]
         public int Id { get; set; }
 
-        [Range(1, 1000)]
         [Required]
         public int CellNumber { get; set; }
 

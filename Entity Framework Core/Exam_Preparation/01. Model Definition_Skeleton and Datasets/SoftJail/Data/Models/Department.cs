@@ -13,8 +13,6 @@ namespace SoftJail.Data.Models
         [Key]
         public int Id { get; set; }
 
-        [MinLength(3)]
-        [MaxLength(25)]
         [Required]
         public string Name { get; set; }
 
