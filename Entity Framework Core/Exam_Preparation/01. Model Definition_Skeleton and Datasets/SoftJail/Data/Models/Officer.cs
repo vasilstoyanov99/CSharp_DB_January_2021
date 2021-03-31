@@ -15,13 +15,10 @@ namespace SoftJail.Data.Models
         [Key]
         public int Id { get; set; }
 
-        [MaxLength(30)]
-        [MinLength(3)]
         [Required]
         public string FullName { get; set; }
 
         [Required]
-        [Range(typeof(decimal), "0.0", "79228162514264337593543950335")]
         public decimal Salary { get; set; }
 
         [Required]

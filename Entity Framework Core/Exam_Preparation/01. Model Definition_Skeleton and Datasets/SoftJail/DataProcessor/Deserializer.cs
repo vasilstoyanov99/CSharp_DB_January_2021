@@ -1,8 +1,11 @@
 ﻿using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
 using Newtonsoft.Json;
 using SoftJail.Data.Models;
+using SoftJail.Data.Models.Enums;
 using SoftJail.DataProcessor.ImportDto;
 
 namespace SoftJail.DataProcessor
@@ -104,7 +107,48 @@ namespace SoftJail.DataProcessor
 
         public static string ImportOfficersPrisoners(SoftJailDbContext context, string xmlString)
         {
-            throw new NotImplementedException();
+            const string root = "Officers";
+            var xmlDeserializer = new XmlSerializer(typeof(List<OfficersPrisonersImportModel>),
+                new XmlRootAttribute(root));
+
+            var officersPrisonersDTOs = xmlDeserializer
+                .Deserialize(new StringReader(xmlString)) as List<OfficersPrisonersImportModel>;
+
+            var result = new StringBuilder();
+
+            var officers = new List<Officer>();
+
+            foreach (var officerPrisonerDTO in officersPrisonersDTOs)
+            {
+                if (!IsValid(officerPrisonerDTO))
+                {
+                    result.AppendLine("Invalid Data");
+                    continue;
+                }
+
+                var currOfficer = new Officer()
+                {
+                    FullName = officerPrisonerDTO.Name,
+                    Salary = officerPrisonerDTO.Money,
+                    Position = Enum.Parse<Position>(officerPrisonerDTO.Position),
+                    Weapon = Enum.Parse<Weapon>(officerPrisonerDTO.Weapon),
+                    DepartmentId = officerPrisonerDTO.DepartmentId,
+                    OfficerPrisoners = officerPrisonerDTO.Prisoners
+                        .Select(p => new OfficerPrisoner()
+                    {
+                        PrisonerId = p.Id
+                    })
+                        .ToList()
+                };
+
+                officers.Add(currOfficer);
+                result.AppendLine($"Imported {officerPrisonerDTO.Name}" +
+                                  $" ({officerPrisonerDTO.Prisoners.Length} prisoners)");
+            }
+
+            context.Officers.AddRange(officers);
+            context.SaveChanges();
+            return result.ToString().TrimEnd();
         }
 
         private static bool IsValid(object obj)
