@@ -44,20 +44,20 @@ namespace VaporStore.Data
 
 		protected override void OnModelCreating(ModelBuilder model)
         {
-            model.Entity<Purchase>(entity => 
+            model.Entity<GameTag>(entity => 
             {
-                entity.HasKey(ck => new { ck.GameId, ck.CardId});
+                entity.HasKey(ck => new { ck.GameId, ck.TagId});
 
                 entity
                     .HasOne(x => x.Game)
-                    .WithMany(x => x.Purchases)
+                    .WithMany(x => x.GameTags)
                     .HasForeignKey(x => x.GameId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity
-                    .HasOne(x => x.Card)
-                    .WithMany(x => x.Purchases)
-                    .HasForeignKey(x => x.CardId)
+                    .HasOne(x => x.Tag)
+                    .WithMany(x => x.GameTags)
+                    .HasForeignKey(x => x.TagId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
