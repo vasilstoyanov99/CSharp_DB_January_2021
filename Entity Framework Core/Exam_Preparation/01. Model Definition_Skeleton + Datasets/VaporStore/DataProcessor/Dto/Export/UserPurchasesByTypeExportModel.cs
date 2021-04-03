@@ -28,7 +28,7 @@ namespace VaporStore.DataProcessor.Dto.Export
         public string Date { get; set; }
 
         [XmlElement("Game")]
-        public GameExportModel Title { get; set; }
+        public GameExportModel Game { get; set; }
     }
 
     [XmlType("Game")]
